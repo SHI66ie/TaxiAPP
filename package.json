@@ -1,0 +1,15 @@
+{
+  "name": "abuja-taxi-carpool-app",
+  "version": "1.0.0",
+  "description": "Abuja Ride-Hailing & Carpooling Platform (MVP)",
+  "private": true,
+  "scripts": {
+    "install-all": "npm install && npm install --prefix server && npm install --prefix admin-dashboard",
+    "server": "npm start --prefix server",
+    "admin": "npm run dev --prefix admin-dashboard",
+    "dev": "concurrently \"npm run server\" \"npm run admin\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
