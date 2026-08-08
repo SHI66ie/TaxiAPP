@@ -1,20 +1,25 @@
 // Supabase client for the Admin Dashboard (browser-safe)
-// Uses the anon / public key only
+// Safe: never crashes if package or env vars are missing
 
-import { createClient } from '@supabase/supabase-js';
+let supabase = null;
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+try {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn(
-    '[Supabase] VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY not set. Realtime DB features will be disabled.'
-  );
+  if (supabaseUrl && supabaseAnonKey) {
+    // Static import is fine here because Vite resolves it at build time.
+    // We still guard so the rest of the app works without keys.
+    const { createClient } = await import('@supabase/supabase-js');
+    supabase = createClient(supabaseUrl, supabaseAnonKey);
+  } else {
+    console.warn(
+      '[Supabase] VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY not set. Realtime features disabled.'
+    );
+  }
+} catch (err) {
+  console.warn('[Supabase] Package not available. Continuing without Supabase.');
 }
 
-export const supabase =
-  supabaseUrl && supabaseAnonKey
-    ? createClient(supabaseUrl, supabaseAnonKey)
-    : null;
-
+export { supabase };
 export const isSupabaseEnabled = () => Boolean(supabase);
