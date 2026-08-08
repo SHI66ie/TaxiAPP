@@ -1,28 +1,31 @@
 // Supabase client for the Abuja Taxi backend
-// Uses service role key on the server for full DB access (never expose this key to the browser)
+// Safe: never crashes the process if package or env vars are missing
 
-import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
-
 dotenv.config();
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+let supabase = null;
 
-if (!supabaseUrl || !supabaseServiceKey) {
-  console.warn(
-    '[Supabase] Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY. Falling back to in-memory mock store.'
-  );
+try {
+  const { createClient } = await import('@supabase/supabase-js');
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (supabaseUrl && supabaseServiceKey) {
+    supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+  } else {
+    console.warn(
+      '[Supabase] Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY. Using in-memory mock store.'
+    );
+  }
+} catch (err) {
+  console.warn('[Supabase] Package not installed or failed to load. Using in-memory mock store.');
 }
 
-export const supabase =
-  supabaseUrl && supabaseServiceKey
-    ? createClient(supabaseUrl, supabaseServiceKey, {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      })
-    : null;
-
+export { supabase };
 export const isSupabaseEnabled = () => Boolean(supabase);
