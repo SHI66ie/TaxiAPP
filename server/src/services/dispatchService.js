@@ -1,10 +1,12 @@
 // Driver Dispatch and Safety SOS Service
 import { INITIAL_DRIVERS, INITIAL_RIDES, INITIAL_KYC_DOCS } from '../data/mockStore.js';
 import { calculateDistance } from './fareService.js';
+import { computeCarpoolSplit } from './carpoolService.js';
 
 let drivers = [...INITIAL_DRIVERS];
 let rides = [...INITIAL_RIDES];
 let kycDocs = [...INITIAL_KYC_DOCS];
+let pendingCarpoolRequests = [];
 
 export function getDrivers() {
   return drivers;
@@ -36,11 +38,60 @@ export function findNearbyDrivers(pickupCoords, vehicleType = 'standard', radius
 }
 
 export function bookRide(rideData) {
-  const nearby = findNearbyDrivers(rideData.pickupCoords, rideData.vehicleType);
-  const assignedDriver = nearby[0] || drivers[0];
+  if (rideData.isCarpool) {
+    // Check pending queue for a match
+    for (let i = 0; i < pendingCarpoolRequests.length; i++) {
+      const waitingPartner = pendingCarpoolRequests[i];
+      const splitResult = computeCarpoolSplit(waitingPartner, rideData);
+      
+      if (splitResult.isCompatible) {
+        // Match found! Remove from queue
+        pendingCarpoolRequests.splice(i, 1);
+        
+        // Find driver
+        const nearby = findNearbyDrivers(rideData.pickupCoords, rideData.vehicleType);
+        const assignedDriver = nearby[0] || drivers[0];
+        
+        const ride1 = createRideRecord(waitingPartner, splitResult.passenger1.carpoolFare, assignedDriver, rideData.passengerName || 'Matched Commuter');
+        const ride2 = createRideRecord(rideData, splitResult.passenger2.carpoolFare, assignedDriver, waitingPartner.passengerName || 'Matched Commuter');
+        
+        rides.unshift(ride1, ride2);
+        
+        if (assignedDriver) {
+          assignedDriver.status = 'BUSY';
+        }
+        
+        return { 
+          status: 'CARPOOL_MATCHED',
+          rides: [ride1, ride2], 
+          assignedDriver 
+        };
+      }
+    }
+    
+    // No match found, add to queue
+    const queueData = { ...rideData, id: `req_${Date.now().toString().slice(-4)}` };
+    pendingCarpoolRequests.push(queueData);
+    return { status: 'WAITING_FOR_MATCH', request: queueData };
+  } else {
+    // Solo ride
+    const nearby = findNearbyDrivers(rideData.pickupCoords, rideData.vehicleType);
+    const assignedDriver = nearby[0] || drivers[0];
+    
+    const newRide = createRideRecord(rideData, rideData.fare, assignedDriver, null);
+    
+    rides.unshift(newRide);
+    if (assignedDriver) {
+      assignedDriver.status = 'BUSY';
+    }
+    
+    return { status: 'MATCHED', ride: newRide, assignedDriver };
+  }
+}
 
-  const newRide = {
-    id: `ride_${Date.now().toString().slice(-4)}`,
+function createRideRecord(rideData, fare, assignedDriver, carpoolPartner) {
+  return {
+    id: rideData.id || `ride_${Date.now().toString().slice(-4)}_${Math.floor(Math.random()*100)}`,
     passengerName: rideData.passengerName || 'Abuja Commuter',
     passengerPhone: rideData.passengerPhone || '+234 800 000 0000',
     pickupLocation: rideData.pickupLocation,
@@ -49,9 +100,9 @@ export function bookRide(rideData) {
     dropoffCoords: rideData.dropoffCoords,
     vehicleType: rideData.vehicleType || 'standard',
     isCarpool: !!rideData.isCarpool,
-    carpoolPartner: rideData.isCarpool ? 'Matched Commuter (Shared)' : null,
+    carpoolPartner: carpoolPartner,
     status: 'MATCHED',
-    fare: rideData.fare,
+    fare: fare,
     originalFare: rideData.originalFare || rideData.fare,
     driverId: assignedDriver ? assignedDriver.id : null,
     driverName: assignedDriver ? assignedDriver.name : 'Pending Driver',
@@ -61,14 +112,6 @@ export function bookRide(rideData) {
     paymentMethod: rideData.paymentMethod || 'Paystack',
     createdAt: new Date().toISOString()
   };
-
-  rides.unshift(newRide);
-  
-  if (assignedDriver) {
-    assignedDriver.status = 'BUSY';
-  }
-
-  return { ride: newRide, assignedDriver };
 }
 
 export function updateRideStatus(rideId, status) {

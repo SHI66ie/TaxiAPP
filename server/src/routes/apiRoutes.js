@@ -50,7 +50,13 @@ router.post('/rides/book', (req, res) => {
     
     // Broadcast via socket io if attached
     if (req.io) {
-      req.io.emit('new_ride_dispatched', booking.ride);
+      if (booking.status === 'CARPOOL_MATCHED') {
+        req.io.emit('carpool_match_found', booking);
+        req.io.emit('new_ride_dispatched', booking.rides[0]);
+        req.io.emit('new_ride_dispatched', booking.rides[1]);
+      } else if (booking.status === 'MATCHED') {
+        req.io.emit('new_ride_dispatched', booking.ride);
+      }
     }
 
     res.json({ success: true, data: booking });
