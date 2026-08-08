@@ -4,11 +4,13 @@
 let supabase = null;
 
 try {
-  const { createClient } = await import('@supabase/supabase-js');
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
   if (supabaseUrl && supabaseAnonKey) {
+    // Static import is fine here because Vite resolves it at build time.
+    // We still guard so the rest of the app works without keys.
+    const { createClient } = await import('@supabase/supabase-js');
     supabase = createClient(supabaseUrl, supabaseAnonKey);
   } else {
     console.warn(
