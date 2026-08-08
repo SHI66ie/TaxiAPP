@@ -1,0 +1,23 @@
+# Netlify configuration for the Admin Dashboard
+# Deploy only the Vite React admin UI
+
+[build]
+  base = "admin-dashboard"
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA fallback so React Router / client routes work
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Optional: proxy API calls to your backend later (Railway / Render / local tunnel)
+# [[redirects]]
+#   from = "/api/*"
+#   to = "https://your-backend-url.com/api/:splat"
+#   status = 200
+#   force = true
