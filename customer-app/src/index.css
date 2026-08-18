@@ -1,0 +1,148 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Dark Mode Base Tokens */
+  --bg-base: #0f172a; /* Slate 900 */
+  --bg-surface: #1e293b; /* Slate 800 */
+  --bg-surface-elevated: #334155; /* Slate 700 */
+  
+  /* Text Tokens */
+  --text-primary: #f8fafc; /* Slate 50 */
+  --text-secondary: #94a3b8; /* Slate 400 */
+  --text-muted: #64748b; /* Slate 500 */
+  
+  /* Accent Tokens (Abuja Express Vibrant Green/Teal) */
+  --accent-primary: #10b981; /* Emerald 500 */
+  --accent-hover: #059669; /* Emerald 600 */
+  --accent-light: rgba(16, 185, 129, 0.15);
+  
+  /* Semantic Tokens */
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --success: #10b981;
+  --info: #3b82f6;
+
+  /* Layout & Spacing */
+  --nav-height: 70px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-pill: 9999px;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+  --shadow-glow: 0 0 15px rgba(16, 185, 129, 0.3);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Mobile-first constraints */
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5); /* Helps it look like a phone screen on desktop */
+}
+
+/* Glassmorphism Utilities */
+.glass-panel {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-lg);
+}
+
+/* Common Components */
+.btn-primary {
+  background-color: var(--accent-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.btn-primary:hover {
+  background-color: var(--accent-hover);
+  box-shadow: var(--shadow-glow);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-secondary {
+  background-color: var(--bg-surface-elevated);
+  color: var(--text-primary);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-md);
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.btn-secondary:hover {
+  background-color: #475569;
+}
+
+/* Typography utilities */
+.text-h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+.text-h2 { font-size: 22px; font-weight: 600; }
+.text-h3 { font-size: 18px; font-weight: 600; }
+.text-body { font-size: 15px; color: var(--text-secondary); }
+.text-sm { font-size: 13px; color: var(--text-muted); }
+
+/* Animation Utilities */
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite;
+}
+
+/* Hide scrollbar for clean mobile look */
+::-webkit-scrollbar {
+  display: none;
+}
