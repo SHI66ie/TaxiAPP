@@ -20,3 +20,6 @@ Thumbs.db
 
 # Temporary proposal extraction file
 proposal_content.txt
+
+# Local Netlify folder
+.netlify

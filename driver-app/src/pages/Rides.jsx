@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Compass, CheckCircle, Navigation, ShieldAlert, Phone, AlertCircle, Clock } from 'lucide-react';
 import { socket } from '../App';
+import LiveMap from '../components/LiveMap';
 
 export default function Rides() {
   const [rides, setRides] = useState([]);
@@ -103,7 +104,20 @@ export default function Rides() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
           {activeRides.map(ride => (
-            <div key={ride.id} className="glass" style={{ padding: '20px', borderLeft: '4px solid var(--accent-primary)' }}>
+            <div key={ride.id}>
+              {/* Map for active ride */}
+              {ride.pickupCoords && ride.dropoffCoords && (
+                <LiveMap 
+                  rideLocations={{
+                    pickup: ride.pickupCoords,
+                    pickupAddress: ride.pickupLocation,
+                    dropoff: ride.dropoffCoords,
+                    dropoffAddress: ride.dropoffLocation
+                  }}
+                />
+              )}
+              
+              <div className="glass" style={{ padding: '20px', borderLeft: '4px solid var(--accent-primary)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                 <div>
                   <h3 className="text-h3" style={{ fontSize: '15px' }}>{ride.passengerName}</h3>
@@ -160,6 +174,7 @@ export default function Rides() {
                 >
                   <ShieldAlert size={16} />
                 </button>
+              </div>
               </div>
             </div>
           ))}

@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Play, Square, Star, MapPin, Zap, RefreshCw } from 'lucide-react';
 import { socket } from '../App';
+import LiveMap from '../components/LiveMap';
 
 export default function Home() {
   const [driver, setDriver] = useState(null);
   const [status, setStatus] = useState('OFFLINE'); // OFFLINE, AVAILABLE, BUSY
   const [loading, setLoading] = useState(false);
   const [surgeZone, setSurgeZone] = useState({ name: 'Central Business District', multiplier: 1.0 });
+  const [surgeZones, setSurgeZones] = useState([]);
 
   const driverId = 'drv_101'; // Default simulated driver
 
@@ -31,6 +33,7 @@ export default function Home() {
       const res = await fetch('/api/surge/zones');
       const json = await res.json();
       if (json.success && json.data.length > 0) {
+        setSurgeZones(json.data);
         // Find highest surge zone to alert driver
         const sorted = [...json.data].sort((a, b) => b.multiplier - a.multiplier);
         setSurgeZone(sorted[0]);
@@ -168,6 +171,14 @@ export default function Home() {
           )}
         </button>
       </div>
+
+      {/* Live Map with Driver Location and Surge Zones */}
+      {driver?.location && (
+        <LiveMap 
+          driverLocation={driver.location} 
+          surgeZones={surgeZones}
+        />
+      )}
 
       {/* Surge Heatmap Info */}
       <div className="glass" style={{ padding: '16px', display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '24px', borderLeft: '4px solid var(--warning)' }}>
