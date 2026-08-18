@@ -252,7 +252,7 @@ export default function App() {
 
           <div className="glass-panel stat-card">
             <div>
-              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>InDrive Active Bids</div>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Active Fare Bids</div>
               <div className="stat-val" style={{ color: 'var(--accent-gold)' }}>{activeBidsCount} Open</div>
             </div>
             <div className="stat-icon" style={{ background: 'rgba(245, 158, 11, 0.15)', color: 'var(--accent-gold)' }}>
@@ -262,7 +262,7 @@ export default function App() {
 
           <div className="glass-panel stat-card">
             <div>
-              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Uber Surge Peak</div>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Peak Demand Surge</div>
               <div className="stat-val" style={{ color: '#ef4444' }}>
                 {surgeZones.find(z => z.multiplier >= 1.7)?.multiplier || 1.8}x Surge
               </div>

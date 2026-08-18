@@ -46,19 +46,19 @@ export default function Navbar({ activeTab, setActiveTab, onTriggerSos, sosAlert
             className={`tab-btn ${activeTab === 'bidding' ? 'active' : ''}`}
             onClick={() => setActiveTab('bidding')}
           >
-            <Banknote size={16} /> InDrive Bidding
+            <Banknote size={16} /> P2P Fare Bidding
           </button>
           <button
             className={`tab-btn ${activeTab === 'surge' ? 'active' : ''}`}
             onClick={() => setActiveTab('surge')}
           >
-            <Zap size={16} /> Uber Surge Engine
+            <Zap size={16} /> Dynamic Surge Engine
           </button>
           <button
             className={`tab-btn ${activeTab === 'bolt' ? 'active' : ''}`}
             onClick={() => setActiveTab('bolt')}
           >
-            <Radio size={16} /> Bolt Fleet & Telemetry
+            <Radio size={16} /> Fleet Telemetry & GPS
           </button>
           <button
             className={`tab-btn ${activeTab === 'payments' ? 'active' : ''}`}

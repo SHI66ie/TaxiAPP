@@ -5,7 +5,7 @@ const FleetSelector = ({ onSelect }) => {
   const [selected, setSelected] = useState('standard');
 
   const categories = [
-    { id: 'lite', name: 'Bolt Lite', icon: Car, price: '₦1,800', time: '3 min', color: '#94a3b8' },
+    { id: 'lite', name: 'TaxiAPP Lite', icon: Car, price: '₦1,800', time: '3 min', color: '#94a3b8' },
     { id: 'standard', name: 'Standard', icon: Car, price: '₦2,500', time: '2 min', color: '#10b981' },
     { id: 'comfort', name: 'Comfort', icon: Zap, price: '₦3,500', time: '5 min', color: '#3b82f6' },
     { id: 'carpool', name: 'Carpool', icon: Users, price: '₦1,200', time: '7 min', color: '#f59e0b' },

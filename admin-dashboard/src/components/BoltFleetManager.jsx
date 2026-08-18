@@ -6,11 +6,11 @@ export default function BoltFleetManager({ drivers = [], onSimulateTelemetry }) 
   const [activeDriver, setActiveDriver] = useState(drivers[0] || null);
 
   const fleetCategories = [
-    { id: 'lite', name: 'Bolt Lite', desc: 'Economy rides for everyday commuters', multiplier: '0.85x Tariff', color: '#10b981' },
-    { id: 'standard', name: 'Bolt Standard', desc: 'Comfortable sedan ride across Abuja', multiplier: '1.0x Tariff', color: '#06b6d4' },
-    { id: 'comfort', name: 'Bolt Comfort Executive', desc: 'Premium luxury vehicles with top-rated drivers', multiplier: '1.35x Tariff', color: '#f59e0b' },
-    { id: 'green', name: 'Bolt Green (Electric)', desc: 'Zero-emission hybrid & EV fleet', multiplier: '1.1x Tariff', color: '#22c55e' },
-    { id: 'carpool', name: 'Bolt Carpool', desc: 'Shared commuter split-fare matching', multiplier: '0.65x Tariff', color: '#a855f7' }
+    { id: 'lite', name: 'TaxiAPP Lite', desc: 'Economy rides for everyday commuters', multiplier: '0.85x Tariff', color: '#10b981' },
+    { id: 'standard', name: 'TaxiAPP Standard', desc: 'Comfortable sedan ride across Abuja', multiplier: '1.0x Tariff', color: '#06b6d4' },
+    { id: 'comfort', name: 'TaxiAPP Executive', desc: 'Premium luxury vehicles with top-rated drivers', multiplier: '1.35x Tariff', color: '#f59e0b' },
+    { id: 'green', name: 'TaxiAPP Green EV', desc: 'Zero-emission hybrid & EV fleet', multiplier: '1.1x Tariff', color: '#22c55e' },
+    { id: 'carpool', name: 'TaxiAPP Carpool', desc: 'Shared commuter split-fare matching', multiplier: '0.65x Tariff', color: '#a855f7' }
   ];
 
   return (
@@ -18,10 +18,10 @@ export default function BoltFleetManager({ drivers = [], onSimulateTelemetry }) 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: '#10b981' }}>⚡</span> Bolt Multi-Tier Fleet & Telemetry Hub
+            <span style={{ color: '#10b981' }}>⚡</span> TaxiAPP Multi-Tier Fleet & Telemetry Hub
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-            Multi-class vehicle dispatch, driver performance tiering, and high-frequency GPS telemetry streaming.
+            Multi-class vehicle dispatch, driver performance tiering, and high-frequency GPS telemetry streaming — powered by TaxiAPP.
           </p>
         </div>
         <button

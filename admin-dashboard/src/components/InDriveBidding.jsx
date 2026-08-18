@@ -37,14 +37,14 @@ export default function InDriveBidding({ bids = [], onCreateBid, onAcceptBid, on
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: 'var(--accent-gold)' }}>🤝</span> InDrive Real-Time Fare Bidding Engine
+            <span style={{ color: 'var(--accent-gold)' }}>🤝</span> TaxiAPP Real-Time Bidding Engine
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-            Passengers propose custom fares, drivers place counter-bids, and riders select preferred offers by price & driver rating.
+            Passengers propose custom fares, drivers place counter-bids, and riders select preferred offers by price & driver rating — powered by TaxiAPP's peer-to-peer negotiation engine.
           </p>
         </div>
         <span className="badge badge-warning" style={{ fontSize: '0.85rem', padding: '0.5rem 0.85rem' }}>
-          <Sparkles size={14} style={{ display: 'inline', marginRight: 4 }} /> Peer-to-Peer Negotiation Active
+          <Sparkles size={14} style={{ display: 'inline', marginRight: 4 }} /> P2P Negotiation Active
         </span>
       </div>
 

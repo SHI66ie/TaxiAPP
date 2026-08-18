@@ -24,10 +24,10 @@ export default function UberSurgeManager({ surgeZones = [], onUpdateZoneDemand }
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: '#ef4444' }}>⚡</span> Uber Dynamic Surge & Demand Grid Engine
+            <span style={{ color: '#ef4444' }}>⚡</span> TaxiAPP Dynamic Surge & Demand Grid Engine
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-            Calculates live demand-to-supply ratio across Abuja corridors with dynamic fare surge multipliers.
+            Calculates live demand-to-supply ratio across Abuja corridors with TaxiAPP's dynamic fare surge multipliers.
           </p>
         </div>
         <span className="badge badge-error" style={{ fontSize: '0.85rem', padding: '0.5rem 0.85rem' }}>
