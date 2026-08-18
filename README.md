@@ -95,10 +95,24 @@ If keys are missing the backend falls back to the in-memory mock store automatic
 
 ---
 
-## 🌐 Netlify Deploy (Admin UI)
+## 🌐 Netlify Deploy
 
-1. Import `SHI66ie/TaxiAPP` on [app.netlify.com](https://app.netlify.com).
-2. `netlify.toml` already sets base = `admin-dashboard`.
+Both apps are deployed as **separate Netlify sites** from the same repository.
+
+### Admin Dashboard (Command Center)
+
+1. Import `SHI66ie/TaxiAPP` on [app.netlify.com](https://app.netlify.com) → **New site**.
+2. Root `netlify.toml` already sets `base = "admin-dashboard"`.
+3. Add environment variables:
+   - `VITE_MAPBOX_ACCESS_TOKEN`
+   - `VITE_SUPABASE_URL` (optional)
+   - `VITE_SUPABASE_ANON_KEY` (optional)
+4. Deploy.
+
+### Customer Portal
+
+1. Import `SHI66ie/TaxiAPP` on [app.netlify.com](https://app.netlify.com) → **New site** (separate site from the same repo).
+2. `customer-app/netlify.toml` already sets `base = "customer-app"`.
 3. Add environment variables:
    - `VITE_MAPBOX_ACCESS_TOKEN`
    - `VITE_SUPABASE_URL` (optional)
