@@ -2,10 +2,14 @@ import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import Navbar from './components/Navbar';
 import LiveMap from './components/LiveMap';
+import InDriveBidding from './components/InDriveBidding';
+import UberSurgeManager from './components/UberSurgeManager';
+import BoltFleetManager from './components/BoltFleetManager';
+import PaymentManager from './components/PaymentManager';
 import CarpoolCalculator from './components/CarpoolCalculator';
 import KycManager from './components/KycManager';
 import RidesTable from './components/RidesTable';
-import { Car, Users, DollarSign, ShieldAlert, Sparkles, Navigation } from 'lucide-react';
+import { Car, Users, Banknote, ShieldAlert, Sparkles, Navigation, Zap, Radio, CreditCard } from 'lucide-react';
 
 const socket = io('http://localhost:5000');
 
@@ -14,22 +18,30 @@ export default function App() {
   const [drivers, setDrivers] = useState([]);
   const [rides, setRides] = useState([]);
   const [kycDocs, setKycDocs] = useState([]);
+  const [bids, setBids] = useState([]);
+  const [surgeZones, setSurgeZones] = useState([]);
   const [sosAlert, setSosAlert] = useState(null);
 
   const fetchDashboardData = async () => {
     try {
-      const [resD, resR, resK] = await Promise.all([
+      const [resD, resR, resK, resB, resS] = await Promise.all([
         fetch('/api/drivers'),
         fetch('/api/rides'),
-        fetch('/api/drivers/kyc')
+        fetch('/api/drivers/kyc'),
+        fetch('/api/bidding'),
+        fetch('/api/surge/zones')
       ]);
       const dataD = await resD.json();
       const dataR = await resR.json();
       const dataK = await resK.json();
+      const dataB = await resB.json();
+      const dataS = await resS.json();
 
       if (dataD.success) setDrivers(dataD.data);
       if (dataR.success) setRides(dataR.data);
       if (dataK.success) setKycDocs(dataK.data);
+      if (dataB.success) setBids(dataB.data);
+      if (dataS.success) setSurgeZones(dataS.data);
     } catch (err) {
       console.error('API Connection Error:', err);
     }
@@ -45,14 +57,105 @@ export default function App() {
     socket.on('new_ride_dispatched', () => fetchDashboardData());
     socket.on('ride_status_updated', () => fetchDashboardData());
     socket.on('driver_kyc_approved', () => fetchDashboardData());
+    socket.on('new_bid_created', () => fetchDashboardData());
+    socket.on('driver_counter_offer_placed', () => fetchDashboardData());
+    socket.on('bid_accepted', () => fetchDashboardData());
+    socket.on('surge_updated', () => fetchDashboardData());
+    socket.on('location_changed', () => fetchDashboardData());
+    socket.on('payment_verified', () => fetchDashboardData());
+    socket.on('driver_payout_settled', () => fetchDashboardData());
 
     return () => {
       socket.off('emergency_sos_alert');
       socket.off('new_ride_dispatched');
       socket.off('ride_status_updated');
       socket.off('driver_kyc_approved');
+      socket.off('new_bid_created');
+      socket.off('driver_counter_offer_placed');
+      socket.off('bid_accepted');
+      socket.off('surge_updated');
+      socket.off('location_changed');
+      socket.off('payment_verified');
+      socket.off('driver_payout_settled');
     };
   }, []);
+
+  // InDrive Bidding Actions
+  const handleCreateBid = async (bidData) => {
+    try {
+      await fetch('/api/bidding/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bidData)
+      });
+      fetchDashboardData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleCounterOffer = async (bidId, driverId, counterPrice) => {
+    try {
+      await fetch(`/api/bidding/${bidId}/counter`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ driverId, counterPrice })
+      });
+      fetchDashboardData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleAcceptBid = async (bidId, driverId) => {
+    try {
+      await fetch(`/api/bidding/${bidId}/accept`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ driverId })
+      });
+      fetchDashboardData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Uber Surge Action
+  const handleUpdateZoneDemand = async (zoneId, demandDelta, driverDelta) => {
+    try {
+      await fetch(`/api/surge/zone/${zoneId}/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ demandDelta, driverDelta })
+      });
+      fetchDashboardData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Bolt Telemetry Action
+  const handleSimulateTelemetry = async (driverId) => {
+    try {
+      const driver = drivers.find(d => d.id === driverId) || drivers[0];
+      if (!driver) return;
+
+      const newLat = driver.location.lat + (Math.random() - 0.5) * 0.008;
+      const newLng = driver.location.lng + (Math.random() - 0.5) * 0.008;
+
+      await fetch('/api/location/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          driverId: driver.id,
+          coords: { lat: newLat, lng: newLng, speed: 42, heading: 90 }
+        })
+      });
+      fetchDashboardData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const handleSimulateBooking = async () => {
     try {
@@ -123,7 +226,7 @@ export default function App() {
   const activeDriversCount = drivers.filter(d => d.status === 'AVAILABLE' || d.status === 'BUSY').length;
   const carpoolCount = rides.filter(r => r.isCarpool).length;
   const totalRevenue = rides.reduce((acc, r) => acc + (r.status === 'COMPLETED' ? r.fare : 0), 18500);
-  const pendingKycCount = kycDocs.filter(k => k.status === 'PENDING').length;
+  const activeBidsCount = bids.filter(b => b.status === 'OPEN').length;
 
   return (
     <div className="app-container">
@@ -149,11 +252,23 @@ export default function App() {
 
           <div className="glass-panel stat-card">
             <div>
-              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Carpool Split Trips</div>
-              <div className="stat-val" style={{ color: 'var(--accent-gold)' }}>{carpoolCount} Active</div>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>InDrive Active Bids</div>
+              <div className="stat-val" style={{ color: 'var(--accent-gold)' }}>{activeBidsCount} Open</div>
             </div>
             <div className="stat-icon" style={{ background: 'rgba(245, 158, 11, 0.15)', color: 'var(--accent-gold)' }}>
-              <Sparkles size={24} />
+              <Banknote size={24} />
+            </div>
+          </div>
+
+          <div className="glass-panel stat-card">
+            <div>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Uber Surge Peak</div>
+              <div className="stat-val" style={{ color: '#ef4444' }}>
+                {surgeZones.find(z => z.multiplier >= 1.7)?.multiplier || 1.8}x Surge
+              </div>
+            </div>
+            <div className="stat-icon" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>
+              <Zap size={24} />
             </div>
           </div>
 
@@ -163,19 +278,7 @@ export default function App() {
               <div className="stat-val">₦{totalRevenue.toLocaleString()}</div>
             </div>
             <div className="stat-icon" style={{ background: 'rgba(6, 182, 212, 0.15)', color: 'var(--accent-cyan)' }}>
-              <DollarSign size={24} />
-            </div>
-          </div>
-
-          <div className="glass-panel stat-card">
-            <div>
-              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>KYC Verification Queue</div>
-              <div className="stat-val" style={{ color: pendingKycCount > 0 ? '#ef4444' : 'var(--text-muted)' }}>
-                {pendingKycCount} Pending
-              </div>
-            </div>
-            <div className="stat-icon" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>
-              <ShieldAlert size={24} />
+              <CreditCard size={24} />
             </div>
           </div>
         </div>
@@ -195,6 +298,31 @@ export default function App() {
           </>
         )}
 
+        {activeTab === 'bidding' && (
+          <InDriveBidding
+            bids={bids}
+            onCreateBid={handleCreateBid}
+            onAcceptBid={handleAcceptBid}
+            onCounterOffer={handleCounterOffer}
+          />
+        )}
+
+        {activeTab === 'surge' && (
+          <UberSurgeManager
+            surgeZones={surgeZones}
+            onUpdateZoneDemand={handleUpdateZoneDemand}
+          />
+        )}
+
+        {activeTab === 'bolt' && (
+          <BoltFleetManager
+            drivers={drivers}
+            onSimulateTelemetry={handleSimulateTelemetry}
+          />
+        )}
+
+        {activeTab === 'payments' && <PaymentManager />}
+
         {activeTab === 'carpool' && <CarpoolCalculator />}
 
         {activeTab === 'kyc' && (
@@ -207,3 +335,5 @@ export default function App() {
     </div>
   );
 }
+
+

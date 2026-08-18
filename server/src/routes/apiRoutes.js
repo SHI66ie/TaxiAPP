@@ -1,6 +1,6 @@
 // REST API Router for Abuja Express Taxi & Carpool Backend
 import express from 'express';
-import { calculateFare } from '../services/fareService.js';
+import { calculateFare, BOLT_FLEET_CATEGORIES } from '../services/fareService.js';
 import { computeCarpoolSplit, calculateRouteOverlap } from '../services/carpoolService.js';
 import {
   getDrivers,
@@ -11,18 +11,194 @@ import {
   updateRideStatus,
   approveDriverKyc
 } from '../services/dispatchService.js';
+import {
+  getActiveBids,
+  createBidRequest,
+  submitDriverCounterOffer,
+  acceptDriverBid
+} from '../services/biddingService.js';
+import {
+  getSurgeZones,
+  updateZoneDemand
+} from '../services/surgeService.js';
+import {
+  updateDriverLocation,
+  reverseGeocodeAbuja,
+  generateTripShareLink
+} from '../services/locationService.js';
+import {
+  getPaymentMethods,
+  initializePayment,
+  verifyPayment,
+  getDriverWallets,
+  requestDriverPayout,
+  getPaymentHistory
+} from '../services/paymentService.js';
 
 const router = express.Router();
 
 // Fare Estimation
 router.post('/fare/estimate', (req, res) => {
   try {
-    const { pickupCoords, dropoffCoords, vehicleType, isAirport } = req.body;
+    const { pickupCoords, dropoffCoords, vehicleType, isAirport, customSurge } = req.body;
     if (!pickupCoords || !dropoffCoords) {
       return res.status(400).json({ error: 'pickupCoords and dropoffCoords are required' });
     }
-    const estimation = calculateFare({ pickupCoords, dropoffCoords, vehicleType, isAirport });
+    const estimation = calculateFare({ pickupCoords, dropoffCoords, vehicleType, isAirport, customSurge });
     res.json({ success: true, data: estimation });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Bolt Fleet Categories Endpoint
+router.get('/fleet/categories', (req, res) => {
+  res.json({ success: true, data: BOLT_FLEET_CATEGORIES });
+});
+
+// InDrive Bidding Endpoints
+router.get('/bidding', (req, res) => {
+  res.json({ success: true, data: getActiveBids() });
+});
+
+router.post('/bidding/create', (req, res) => {
+  try {
+    const newBid = createBidRequest(req.body);
+    if (req.io) {
+      req.io.emit('new_bid_created', newBid);
+    }
+    res.json({ success: true, data: newBid });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/bidding/:id/counter', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { driverId, counterPrice } = req.body;
+    const updatedBid = submitDriverCounterOffer(id, { driverId, counterPrice });
+    if (req.io) {
+      req.io.emit('driver_counter_offer_placed', updatedBid);
+    }
+    res.json({ success: true, data: updatedBid });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/bidding/:id/accept', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { driverId } = req.body;
+    const result = acceptDriverBid(id, driverId);
+    if (req.io) {
+      req.io.emit('bid_accepted', result);
+    }
+    res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Uber Surge Endpoints
+router.get('/surge/zones', (req, res) => {
+  res.json({ success: true, data: getSurgeZones() });
+});
+
+router.post('/surge/zone/:id/update', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { demandDelta, driverDelta } = req.body;
+    const updatedZone = updateZoneDemand(id, demandDelta, driverDelta);
+    if (req.io) {
+      req.io.emit('surge_updated', updatedZone);
+    }
+    res.json({ success: true, data: updatedZone });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Live Location Services Endpoints
+router.post('/location/update', (req, res) => {
+  try {
+    const { driverId, coords } = req.body;
+    const updated = updateDriverLocation(driverId, coords);
+    if (req.io && updated) {
+      req.io.emit('location_changed', updated);
+    }
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/location/reverse-geocode', (req, res) => {
+  try {
+    const { lat, lng } = req.body;
+    const address = reverseGeocodeAbuja(lat, lng);
+    res.json({ success: true, data: { address, lat, lng } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/location/share-link/:rideId', (req, res) => {
+  try {
+    const { rideId } = req.params;
+    const shareData = generateTripShareLink(rideId);
+    res.json({ success: true, data: shareData });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Payments & Settlement Endpoints (Paystack, Flutterwave, NIBSS, Wallets)
+router.get('/payments/methods', (req, res) => {
+  res.json({ success: true, data: getPaymentMethods() });
+});
+
+router.get('/payments/history', (req, res) => {
+  res.json({ success: true, data: getPaymentHistory() });
+});
+
+router.post('/payments/initialize', (req, res) => {
+  try {
+    const result = initializePayment(req.body);
+    if (req.io) {
+      req.io.emit('payment_initialized', result.transaction);
+    }
+    res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/payments/verify', (req, res) => {
+  try {
+    const { reference } = req.body;
+    const verified = verifyPayment(reference);
+    if (req.io) {
+      req.io.emit('payment_verified', verified);
+    }
+    res.json({ success: true, data: verified });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/payments/wallets', (req, res) => {
+  res.json({ success: true, data: getDriverWallets() });
+});
+
+router.post('/payments/payout', (req, res) => {
+  try {
+    const payout = requestDriverPayout(req.body);
+    if (req.io) {
+      req.io.emit('driver_payout_settled', payout);
+    }
+    res.json({ success: true, data: payout });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -48,7 +224,6 @@ router.post('/rides/book', (req, res) => {
     const rideData = req.body;
     const booking = bookRide(rideData);
     
-    // Broadcast via socket io if attached
     if (req.io) {
       if (booking.status === 'CARPOOL_MATCHED') {
         req.io.emit('carpool_match_found', booking);
@@ -150,3 +325,5 @@ router.post('/sos/trigger', (req, res) => {
 });
 
 export default router;
+
+

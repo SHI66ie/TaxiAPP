@@ -1,5 +1,5 @@
 import React from 'react';
-import { Car, ShieldAlert, Users, FileCheck, MapPin, Sparkles } from 'lucide-react';
+import { Car, ShieldAlert, Users, FileCheck, MapPin, Sparkles, Banknote, CreditCard, Zap, Radio } from 'lucide-react';
 
 export default function Navbar({ activeTab, setActiveTab, onTriggerSos, sosAlert }) {
   return (
@@ -32,7 +32,7 @@ export default function Navbar({ activeTab, setActiveTab, onTriggerSos, sosAlert
               Ride-Hailing & Carpooling Command
             </div>
           </div>
-          <span className="brand-badge">ABUJA MVP</span>
+          <span className="brand-badge">PRO EDITION</span>
         </div>
 
         <div className="nav-tabs">
@@ -40,19 +40,43 @@ export default function Navbar({ activeTab, setActiveTab, onTriggerSos, sosAlert
             className={`tab-btn ${activeTab === 'dispatch' ? 'active' : ''}`}
             onClick={() => setActiveTab('dispatch')}
           >
-            <MapPin size={16} /> Live Dispatch & Map
+            <MapPin size={16} /> Live Radar & GPS
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'bidding' ? 'active' : ''}`}
+            onClick={() => setActiveTab('bidding')}
+          >
+            <Banknote size={16} /> InDrive Bidding
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'surge' ? 'active' : ''}`}
+            onClick={() => setActiveTab('surge')}
+          >
+            <Zap size={16} /> Uber Surge Engine
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'bolt' ? 'active' : ''}`}
+            onClick={() => setActiveTab('bolt')}
+          >
+            <Radio size={16} /> Bolt Fleet & Telemetry
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'payments' ? 'active' : ''}`}
+            onClick={() => setActiveTab('payments')}
+          >
+            <CreditCard size={16} /> Paystack & Payments
           </button>
           <button
             className={`tab-btn ${activeTab === 'carpool' ? 'active' : ''}`}
             onClick={() => setActiveTab('carpool')}
           >
-            <Sparkles size={16} /> Carpool Split Calculator
+            <Sparkles size={16} /> Carpool Split
           </button>
           <button
             className={`tab-btn ${activeTab === 'kyc' ? 'active' : ''}`}
             onClick={() => setActiveTab('kyc')}
           >
-            <FileCheck size={16} /> Driver KYC Approval
+            <FileCheck size={16} /> Driver KYC
           </button>
         </div>
 
@@ -63,3 +87,5 @@ export default function Navbar({ activeTab, setActiveTab, onTriggerSos, sosAlert
     </>
   );
 }
+
+

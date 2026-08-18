@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { Navigation } from 'lucide-react';
+import { Navigation, Crosshair, Share2, Check, Copy } from 'lucide-react';
 
 // Abuja city centre
 const ABUJA_CENTER = { lng: 7.4898, lat: 9.0579 };
@@ -11,8 +11,13 @@ export default function LiveMap({ drivers = [], rides = [], onSimulateBooking })
   const mapContainer = useRef(null);
   const map = useRef(null);
   const markersRef = useRef([]);
+  const userMarkerRef = useRef(null);
   const [mapReady, setMapReady] = useState(false);
   const [mapError, setMapError] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
+  const [locating, setLocating] = useState(false);
+  const [shareLink, setShareLink] = useState(null);
+  const [copied, setCopied] = useState(false);
 
   const token = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
@@ -59,6 +64,7 @@ export default function LiveMap({ drivers = [], rides = [], onSimulateBooking })
       // cleanup markers
       markersRef.current.forEach((m) => m.remove());
       markersRef.current = [];
+      if (userMarkerRef.current) userMarkerRef.current.remove();
       if (map.current) {
         map.current.remove();
         map.current = null;
@@ -132,6 +138,71 @@ export default function LiveMap({ drivers = [], rides = [], onSimulateBooking })
       });
   }, [drivers, rides, mapReady]);
 
+  // Handle Device Geolocation
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser');
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setUserLocation(coords);
+        setLocating(false);
+
+        if (map.current) {
+          map.current.flyTo({ center: [coords.lng, coords.lat], zoom: 14 });
+
+          if (userMarkerRef.current) userMarkerRef.current.remove();
+
+          const el = document.createElement('div');
+          el.style.width = '20px';
+          el.style.height = '20px';
+          el.style.borderRadius = '50%';
+          el.style.backgroundColor = '#06b6d4';
+          el.style.border = '3px solid white';
+          el.style.boxShadow = '0 0 15px #06b6d4';
+
+          userMarkerRef.current = new mapboxgl.Marker({ element: el })
+            .setLngLat([coords.lng, coords.lat])
+            .setPopup(new mapboxgl.Popup().setHTML('<strong>📍 Your Live Device Location</strong>'))
+            .addTo(map.current);
+        }
+      },
+      (err) => {
+        console.error(err);
+        setLocating(false);
+        // Fallback to Abuja central coordinate
+        setUserLocation(ABUJA_CENTER);
+        if (map.current) {
+          map.current.flyTo({ center: [ABUJA_CENTER.lng, ABUJA_CENTER.lat], zoom: 13 });
+        }
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  };
+
+  const handleShareTrip = async (rideId) => {
+    try {
+      const res = await fetch(`/api/location/share-link/${rideId || 'ride_901'}`);
+      const data = await res.json();
+      if (data.success) {
+        setShareLink(data.data.shareUrl);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const copyToClipboard = () => {
+    if (shareLink) {
+      navigator.clipboard.writeText(shareLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   return (
     <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
       <div
@@ -145,15 +216,34 @@ export default function LiveMap({ drivers = [], rides = [], onSimulateBooking })
         }}
       >
         <div>
-          <h2>🗺️ Live Abuja Fleet Tracking & Dispatch Radar</h2>
+          <h2>🗺️ Live Abuja Fleet Tracking & GPS Radar</h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-            Real-time Mapbox GPS across Wuse II, Maitama, Gwarinpa, CBD & Airport Express
+            Real-time Mapbox GPS & socket location telemetry across Maitama, Wuse II, Gwarinpa, CBD & Airport Express
           </p>
         </div>
-        <button className="btn btn-primary" onClick={onSimulateBooking}>
-          <Navigation size={16} /> Simulate Passenger Booking
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button className="btn btn-secondary" onClick={handleGetLocation} disabled={locating}>
+            <Crosshair size={16} /> {locating ? 'Locating...' : 'My Live Location'}
+          </button>
+          <button className="btn btn-secondary" onClick={() => handleShareTrip(rides[0]?.id)}>
+            <Share2 size={16} /> Share Live Trip
+          </button>
+          <button className="btn btn-primary" onClick={onSimulateBooking}>
+            <Navigation size={16} /> Simulate Passenger Booking
+          </button>
+        </div>
       </div>
+
+      {shareLink && (
+        <div className="glass-panel" style={{ padding: '0.85rem 1.25rem', marginBottom: '1rem', background: 'rgba(6, 182, 212, 0.15)', border: '1px solid var(--accent-cyan)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ fontSize: '0.85rem' }}>
+            <strong>🔗 Shareable Live Safety Tracking Link:</strong> <span style={{ color: 'var(--accent-cyan)' }}>{shareLink}</span>
+          </div>
+          <button className="btn btn-secondary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }} onClick={copyToClipboard}>
+            {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? 'Copied!' : 'Copy Link'}
+          </button>
+        </div>
+      )}
 
       <div className="map-container mapbox-live">
         {mapError && (
@@ -172,7 +262,7 @@ export default function LiveMap({ drivers = [], rides = [], onSimulateBooking })
       </div>
 
       {/* Driver Cards Grid */}
-      <h3 style={{ marginBottom: '1rem' }}>🚕 Verified Fleet Drivers ({drivers.length})</h3>
+      <h3 style={{ marginBottom: '1rem', marginTop: '1.5rem' }}>🚕 Verified Fleet Drivers ({drivers.length})</h3>
       <div
         style={{
           display: 'grid',
@@ -227,3 +317,4 @@ export default function LiveMap({ drivers = [], rides = [], onSimulateBooking })
     </div>
   );
 }
+

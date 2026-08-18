@@ -1,5 +1,14 @@
-// Fare Matrix Service for Abuja Ride-Hailing
+// Fare Matrix Service for Abuja Ride-Hailing (Bolt & Uber Integrated)
 import { ABUJA_ZONES, VEHICLE_TYPES } from '../data/mockStore.js';
+import { getSurgeMultiplierForCoords } from './surgeService.js';
+
+export const BOLT_FLEET_CATEGORIES = {
+  LITE: { id: 'lite', name: 'Bolt Lite (Economy)', multiplier: 0.85, etaBonus: 2 },
+  STANDARD: { id: 'standard', name: 'Bolt Standard', multiplier: 1.0, etaBonus: 0 },
+  COMFORT: { id: 'comfort', name: 'Bolt Comfort Executive', multiplier: 1.35, etaBonus: -1 },
+  GREEN: { id: 'green', name: 'Bolt Green (Electric / Hybrid)', multiplier: 1.1, etaBonus: 1 },
+  CARPOOL: { id: 'carpool', name: 'Bolt Carpool Split', multiplier: 0.65, etaBonus: 3 }
+};
 
 /**
  * Calculates distance in kilometers between two coordinates using Haversine Formula
@@ -19,36 +28,43 @@ export function calculateDistance(lat1, lon1, lat2, lon2) {
 }
 
 /**
- * Calculates single-rider fare for a trip in Abuja NGN (₦)
+ * Calculates single-rider fare with Bolt categories & Uber surge pricing
  */
-export function calculateFare({ pickupCoords, dropoffCoords, vehicleType = 'standard', isAirport = false }) {
+export function calculateFare({ pickupCoords, dropoffCoords, vehicleType = 'standard', isAirport = false, customSurge = null }) {
   const distKm = calculateDistance(
     pickupCoords.lat,
     pickupCoords.lng,
     dropoffCoords.lat,
     dropoffCoords.lng
-  ) || 3.5; // fallback min distance
+  ) || 3.5;
 
-  const vType = VEHICLE_TYPES[vehicleType.toUpperCase()] || VEHICLE_TYPES.STANDARD;
-  
+  const fleetKey = (vehicleType || 'standard').toUpperCase();
+  const fleetCategory = BOLT_FLEET_CATEGORIES[fleetKey] || BOLT_FLEET_CATEGORIES.STANDARD;
+
   let baseFare = 750;
   let perKm = 240;
 
-  // Airport corridor special tariff
   if (isAirport || distKm > 20) {
     baseFare = 2200;
     perKm = 280;
   }
 
-  const rawFare = (baseFare + (distKm * perKm)) * vType.multiplier;
-  // Round to nearest 50 NGN for cash convenience in Nigeria
-  const roundedFare = Math.ceil(rawFare / 50) * 50;
+  // Calculate Uber-style Dynamic Surge Multiplier
+  const surgeMultiplier = customSurge || getSurgeMultiplierForCoords(pickupCoords.lat, pickupCoords.lng);
+
+  const rawBaseFare = (baseFare + (distKm * perKm)) * fleetCategory.multiplier;
+  const surgeFare = rawBaseFare * surgeMultiplier;
+  const roundedFare = Math.ceil(surgeFare / 50) * 50;
 
   return {
     distanceKm: distKm,
     baseFare,
     perKmRate: perKm,
-    vehicleType: vType.name,
-    estimatedFare: Math.max(roundedFare, 1000) // Minimum trip fare ₦1,000
+    fleetCategory: fleetCategory.name,
+    fleetMultiplier: fleetCategory.multiplier,
+    surgeMultiplier,
+    isSurgeActive: surgeMultiplier > 1.0,
+    estimatedFare: Math.max(roundedFare, 1000)
   };
 }
+

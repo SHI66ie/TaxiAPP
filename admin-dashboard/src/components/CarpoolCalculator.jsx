@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Sparkles, Users, TrendingDown, ArrowRight, DollarSign } from 'lucide-react';
+import { Sparkles, Users, TrendingDown, ArrowRight, Banknote } from 'lucide-react';
+
 
 export default function CarpoolCalculator() {
   const [pickup1, setPickup1] = useState('Berger Junction, Abuja');
