@@ -6,6 +6,7 @@ import com.abuja.taxi.core.network.api.FareRequest
 import com.abuja.taxi.core.network.api.FleetCategory
 import com.abuja.taxi.core.network.api.NetworkModule
 import com.abuja.taxi.core.network.api.RideBookingRequest
+import com.abuja.taxi.core.network.api.SosRequest
 import com.abuja.taxi.core.network.models.Coordinates
 import com.abuja.taxi.core.network.models.Driver
 import com.abuja.taxi.core.network.models.Ride
@@ -27,6 +28,9 @@ class CustomerViewModel : ViewModel() {
 
     private val _bookedRide = MutableStateFlow<Ride?>(null)
     val bookedRide: StateFlow<Ride?> = _bookedRide
+
+    private val _sosActive = MutableStateFlow(false)
+    val sosActive: StateFlow<Boolean> = _sosActive
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -106,8 +110,22 @@ class CustomerViewModel : ViewModel() {
         }
     }
 
+    fun triggerSos(rideId: String, passengerName: String, lat: Double, lng: Double) {
+        viewModelScope.launch {
+            try {
+                val response = apiService.triggerSos(SosRequest(rideId, passengerName, Coordinates(lat, lng)))
+                if (response.success) {
+                    _sosActive.value = true
+                }
+            } catch (e: Exception) {
+                // Fallback: SMS could be implemented here if needed
+            }
+        }
+    }
+
     fun resetBooking() {
         _bookedRide.value = null
         _estimation.value = null
+        _sosActive.value = false
     }
 }

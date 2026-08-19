@@ -27,7 +27,23 @@ interface TaxiApiService {
 
     @POST("fare/estimate")
     suspend fun estimateFare(@Body request: FareRequest): ApiResponse<FareEstimation>
+
+    @POST("sos/trigger")
+    suspend fun triggerSos(@Body request: SosRequest): ApiResponse<SosResponse>
 }
+
+@kotlinx.serialization.Serializable
+data class SosRequest(
+    val rideId: String,
+    val passengerName: String,
+    val coords: Coordinates
+)
+
+@kotlinx.serialization.Serializable
+data class SosResponse(
+    val status: String,
+    val message: String
+)
 
 @kotlinx.serialization.Serializable
 data class FleetCategory(

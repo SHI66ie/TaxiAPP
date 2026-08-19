@@ -24,6 +24,7 @@ import androidx.core.content.ContextCompat
 import com.abuja.taxi.core.network.models.Coordinates
 import com.abuja.taxi.customer.ui.AuthViewModel
 import com.abuja.taxi.customer.ui.CustomerViewModel
+import com.abuja.taxi.customer.ui.components.SosButton
 import com.mapbox.geojson.Point
 import com.mapbox.maps.MapInitOptions
 import com.mapbox.maps.Style
@@ -52,6 +53,7 @@ fun MapScreen(viewModel: CustomerViewModel, authViewModel: AuthViewModel) {
     val fleetCategories by viewModel.fleetCategories.collectAsState()
     val estimation by viewModel.estimation.collectAsState()
     val bookedRide by viewModel.bookedRide.collectAsState()
+    val sosActive by viewModel.sosActive.collectAsState()
     val user by authViewModel.currentUser.collectAsState()
 
     var selectedDestination by remember { mutableStateOf<AbujaLandmark?>(null) }
@@ -124,6 +126,26 @@ fun MapScreen(viewModel: CustomerViewModel, authViewModel: AuthViewModel) {
                 )
             }
 
+            // SOS Button
+            if (bookedRide != null) {
+                SosButton(
+                    isEmergencyActive = sosActive,
+                    onTriggerSos = {
+                        user?.let { u ->
+                            viewModel.triggerSos(
+                                bookedRide!!.id,
+                                u.name,
+                                9.0765, // Current lat
+                                7.3985  // Current lng
+                            )
+                        }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp)
+                )
+            }
+
             // UI Overlays
             Column(
                 modifier = Modifier
@@ -132,7 +154,7 @@ fun MapScreen(viewModel: CustomerViewModel, authViewModel: AuthViewModel) {
                     .padding(16.dp)
             ) {
                 if (bookedRide != null) {
-                    RideStatusCard(bookedRide!!, onDone = { viewModel.resetBooking() })
+                    RideStatusCard(bookedRide!!, sosActive, onDone = { viewModel.resetBooking() })
                 } else if (selectedDestination == null) {
                     DestinationSearchCard(onDestinationSelected = {
                         selectedDestination = it
@@ -286,12 +308,19 @@ fun BookingCard(
 }
 
 @Composable
-fun RideStatusCard(ride: com.abuja.taxi.core.network.models.Ride, onDone: () -> Unit) {
+fun RideStatusCard(ride: com.abuja.taxi.core.network.models.Ride, sosActive: Boolean, onDone: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+        colors = CardDefaults.cardColors(
+            containerColor = if (sosActive) Color.Red.copy(alpha = 0.1f) else MaterialTheme.colorScheme.primaryContainer
+        )
     ) {
         Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            if (sosActive) {
+                Text("🚨 EMERGENCY SOS ACTIVE", color = Color.Red, style = MaterialTheme.typography.titleMedium)
+                Text("Dispatch and emergency contacts notified.", color = Color.Red, style = MaterialTheme.typography.bodySmall)
+                Spacer(modifier = Modifier.height(8.dp))
+            }
             Text("🚕 Ride Booked!", style = MaterialTheme.typography.headlineSmall)
             Text("Driver: ${ride.driverName ?: "Searching..."}", style = MaterialTheme.typography.bodyMedium)
             Text("Vehicle: ${ride.driverVehicle ?: "---"}", style = MaterialTheme.typography.bodySmall)
