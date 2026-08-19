@@ -4,10 +4,12 @@
   "description": "Abuja Ride-Hailing & Carpooling Platform (MVP)",
   "private": true,
   "scripts": {
-    "install-all": "npm install && npm install --prefix server && npm install --prefix admin-dashboard",
+    "install-all": "npm install && npm install --prefix server && npm install --prefix admin-dashboard && npm install --prefix customer-app && npm install --prefix driver-app",
     "server": "npm start --prefix server",
     "admin": "npm run dev --prefix admin-dashboard",
-    "dev": "concurrently \"npm run server\" \"npm run admin\""
+    "customer": "npm run dev --prefix customer-app",
+    "driver": "npm run dev --prefix driver-app",
+    "dev": "concurrently \"npm run server\" \"npm run customer\" \"npm run driver\" \"npm run admin\""
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
