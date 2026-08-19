@@ -11,7 +11,9 @@
         android:label="Abuja Taxi Driver"
         android:roundIcon="@android:drawable/sym_def_app_icon"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AbujaTaxiDriver">
+        android:theme="@style/Theme.AbujaTaxiDriver"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:exported="true">

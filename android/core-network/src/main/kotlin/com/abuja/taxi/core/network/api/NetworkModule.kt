@@ -8,7 +8,9 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 
 object NetworkModule {
-    private const val BASE_URL = "http://10.0.2.2:5000/"
+    // 10.0.2.2 = Android emulator alias for host machine localhost
+    // For physical device testing, replace with your computer's LAN IP e.g. http://192.168.1.5:5000/api/
+    private const val BASE_URL = "http://10.0.2.2:5000/api/"
 
     private val json = Json {
         ignoreUnknownKeys = true
