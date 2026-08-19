@@ -57,7 +57,21 @@ interface TaxiApiService {
 
     @POST("drivers/kyc/submit")
     suspend fun submitKyc(@Body request: KycRequest): ApiResponse<KycResponse>
+
+    @POST("referrals/claim")
+    suspend fun claimReferral(@Body request: ReferralRequest): ApiResponse<ReferralResponse>
 }
+
+@kotlinx.serialization.Serializable
+data class ReferralRequest(
+    val code: String
+)
+
+@kotlinx.serialization.Serializable
+data class ReferralResponse(
+    val message: String,
+    val bonusAmount: Int
+)
 
 @kotlinx.serialization.Serializable
 data class KycRequest(
