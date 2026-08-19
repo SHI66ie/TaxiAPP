@@ -7,6 +7,8 @@ import android.os.Looper
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,6 +18,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.abuja.taxi.driver.ui.DriverViewModel
+import com.abuja.taxi.driver.ui.components.ActiveRideOverlay
+import com.abuja.taxi.driver.ui.components.RideRequestDialog
 import com.google.android.gms.location.*
 import com.mapbox.geojson.Point
 import com.mapbox.maps.MapInitOptions
@@ -31,6 +35,8 @@ fun DriverMapScreen(viewModel: DriverViewModel, driverId: String) {
     val context = LocalContext.current
     val updateStatus by viewModel.updateStatus.collectAsState()
     val walletInfo by viewModel.walletInfo.collectAsState()
+    val activeRide by viewModel.activeRide.collectAsState()
+    val isOnline by viewModel.isOnline.collectAsState()
 
     var hasLocationPermission by remember {
         mutableStateOf(
@@ -117,6 +123,33 @@ fun DriverMapScreen(viewModel: DriverViewModel, driverId: String) {
                 pulsingEnabled = true
             )
         )
+
+        // Availability Toggle
+        Switch(
+            checked = isOnline,
+            onCheckedChange = { viewModel.toggleAvailability(driverId) },
+            modifier = Modifier.align(Alignment.TopCenter).padding(16.dp),
+            thumbContent = {
+                if (isOnline) Icon(Icons.Default.Check, null)
+            }
+        )
+
+        // Ride Management Overlays
+        activeRide?.let { ride ->
+            if (ride.status == "MATCHED") {
+                RideRequestDialog(
+                    ride = ride,
+                    onAccept = { viewModel.updateRideStatus(ride.id, "ARRIVED") }, // Move to Arrived status on accept
+                    onDecline = { viewModel.updateRideStatus(ride.id, "CANCELLED") }
+                )
+            } else {
+                ActiveRideOverlay(
+                    ride = ride,
+                    onStatusUpdate = { status -> viewModel.updateRideStatus(ride.id, status) },
+                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 120.dp)
+                )
+            }
+        }
 
         // Overlay for status
         Card(

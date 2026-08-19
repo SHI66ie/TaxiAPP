@@ -16,6 +16,9 @@ interface TaxiApiService {
     @POST("rides/book")
     suspend fun bookRide(@Body request: RideBookingRequest): ApiResponse<BookingResponse>
 
+    @GET("rides")
+    suspend fun getRides(): ApiResponse<List<Ride>>
+
     @PATCH("rides/{id}/status")
     suspend fun updateRideStatus(@Path("id") id: String, @Body status: StatusUpdate): ApiResponse<Ride>
 
