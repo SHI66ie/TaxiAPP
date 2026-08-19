@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.abuja.taxi.core.network.api.LocationUpdate
 import com.abuja.taxi.core.network.api.NetworkModule
 import com.abuja.taxi.core.network.api.StatusUpdate
+import com.abuja.taxi.core.network.api.SurgeZone
 import com.abuja.taxi.core.network.api.WalletInfo
 import com.abuja.taxi.core.network.models.Coordinates
 import com.abuja.taxi.core.network.models.Ride
@@ -26,6 +27,9 @@ class DriverViewModel : ViewModel() {
     private val _activeRide = MutableStateFlow<Ride?>(null)
     val activeRide: StateFlow<Ride?> = _activeRide
 
+    private val _surgeZones = MutableStateFlow<List<SurgeZone>>(emptyList())
+    val surgeZones: StateFlow<List<SurgeZone>> = _surgeZones
+
     private val _isOnline = MutableStateFlow(false)
     val isOnline: StateFlow<Boolean> = _isOnline
 
@@ -38,6 +42,17 @@ class DriverViewModel : ViewModel() {
                 if (response.success) {
                     val info = response.data.find { it.driverId == driverId }
                     _walletInfo.value = info
+                }
+            } catch (e: Exception) {}
+        }
+    }
+
+    fun fetchSurgeZones() {
+        viewModelScope.launch {
+            try {
+                val response = apiService.getSurgeZones()
+                if (response.success) {
+                    _surgeZones.value = response.data
                 }
             } catch (e: Exception) {}
         }

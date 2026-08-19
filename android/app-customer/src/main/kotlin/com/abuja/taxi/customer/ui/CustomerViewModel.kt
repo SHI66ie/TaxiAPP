@@ -10,6 +10,7 @@ import com.abuja.taxi.core.network.api.PaymentMethod
 import com.abuja.taxi.core.network.api.PaymentVerifyRequest
 import com.abuja.taxi.core.network.api.RideBookingRequest
 import com.abuja.taxi.core.network.api.SosRequest
+import com.abuja.taxi.core.network.api.SurgeZone
 import com.abuja.taxi.core.network.models.Coordinates
 import com.abuja.taxi.core.network.models.Driver
 import com.abuja.taxi.core.network.models.Ride
@@ -41,6 +42,9 @@ class CustomerViewModel : ViewModel() {
     private val _paymentVerified = MutableStateFlow(false)
     val paymentVerified: StateFlow<Boolean> = _paymentVerified
 
+    private val _surgeZones = MutableStateFlow<List<SurgeZone>>(emptyList())
+    val surgeZones: StateFlow<List<SurgeZone>> = _surgeZones
+
     private val _sosActive = MutableStateFlow(false)
     val sosActive: StateFlow<Boolean> = _sosActive
 
@@ -50,6 +54,7 @@ class CustomerViewModel : ViewModel() {
     init {
         fetchFleetCategories()
         fetchPaymentMethods()
+        fetchSurgeZones()
     }
 
     private fun fetchFleetCategories() {
@@ -69,6 +74,17 @@ class CustomerViewModel : ViewModel() {
                 val response = apiService.getPaymentMethods()
                 if (response.success) {
                     _paymentMethods.value = response.data
+                }
+            } catch (e: Exception) {}
+        }
+    }
+
+    fun fetchSurgeZones() {
+        viewModelScope.launch {
+            try {
+                val response = apiService.getSurgeZones()
+                if (response.success) {
+                    _surgeZones.value = response.data
                 }
             } catch (e: Exception) {}
         }

@@ -45,7 +45,19 @@ interface TaxiApiService {
 
     @GET("payments/wallets")
     suspend fun getDriverWallets(): ApiResponse<List<WalletInfo>>
+
+    @GET("surge/zones")
+    suspend fun getSurgeZones(): ApiResponse<List<SurgeZone>>
 }
+
+@kotlinx.serialization.Serializable
+data class SurgeZone(
+    val id: String,
+    val name: String,
+    val multiplier: Double,
+    val level: String,
+    val center: Coordinates? = null // Will be mapped in app if null
+)
 
 @kotlinx.serialization.Serializable
 data class PaymentMethod(
