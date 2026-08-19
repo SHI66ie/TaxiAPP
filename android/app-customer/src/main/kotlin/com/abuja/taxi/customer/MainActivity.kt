@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import com.abuja.taxi.customer.ui.theme.AbujaEmerald
 import com.abuja.taxi.customer.ui.screens.LoginScreen
 import com.abuja.taxi.customer.ui.screens.MapScreen

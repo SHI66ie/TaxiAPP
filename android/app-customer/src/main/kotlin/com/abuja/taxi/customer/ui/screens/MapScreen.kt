@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -26,15 +27,16 @@ import com.abuja.taxi.customer.ui.AuthViewModel
 import com.abuja.taxi.customer.ui.CustomerViewModel
 import com.abuja.taxi.customer.ui.components.PaymentWebView
 import com.abuja.taxi.customer.ui.components.SosButton
+import com.abuja.taxi.customer.ui.theme.AbujaEmerald
+import com.abuja.taxi.customer.ui.theme.AbujaGold
 import com.mapbox.geojson.Point
-import com.mapbox.maps.MapInitOptions
+import com.mapbox.maps.MapboxExperimental
 import com.mapbox.maps.Style
 import com.mapbox.maps.extension.compose.MapboxMap
+import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
 import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
 import com.mapbox.maps.extension.compose.annotation.generated.PolylineAnnotation
-import com.mapbox.maps.extension.compose.animation.viewport.rememberViewportState
-import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
-import com.mapbox.geojson.LineString
+import com.mapbox.maps.extension.compose.style.MapStyle
 
 data class AbujaLandmark(val name: String, val coords: Coordinates)
 
@@ -48,7 +50,7 @@ val ABUJA_LANDMARKS = listOf(
     AbujaLandmark("Lugbe", Coordinates(8.9667, 7.3667))
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, MapboxExperimental::class)
 @Composable
 fun MapScreen(
     viewModel: CustomerViewModel,
@@ -97,7 +99,7 @@ fun MapScreen(
     }
 
     val abuja = Point.fromLngLat(7.3985, 9.0765)
-    val viewportState = rememberViewportState {
+    val viewportState = rememberMapViewportState {
         setCameraOptions {
             center(abuja)
             zoom(12.0)
@@ -130,13 +132,8 @@ fun MapScreen(
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             MapboxMap(
                 modifier = Modifier.fillMaxSize(),
-                mapInitOptionsFactory = { context ->
-                    MapInitOptions(
-                        context = context,
-                        styleUri = Style.TRAFFIC_DAY
-                    )
-                },
-                viewportState = viewportState
+                mapViewportState = viewportState,
+                style = { MapStyle(style = Style.TRAFFIC_DAY) }
             ) {
                 // Route Visualization
                 val routePoints = remember(selectedDestination, bookedRide) {
@@ -153,11 +150,10 @@ fun MapScreen(
 
                 if (routePoints.size >= 2) {
                     PolylineAnnotation(
-                        lineString = LineString.fromPoints(routePoints)
-                    ) {
-                        lineColorInt = android.graphics.Color.parseColor("#007AFF")
+                        points = routePoints,
+                        lineColorInt = android.graphics.Color.parseColor("#007AFF"),
                         lineWidth = 5.0
-                    }
+                    )
                 }
 
                 // Surge Zones Heatmap
@@ -180,14 +176,13 @@ fun MapScreen(
                         }
                         
                         CircleAnnotation(
-                            point = it
-                        ) {
-                            circleRadius = 60.0
-                            circleColorInt = android.graphics.Color.parseColor(color)
-                            circleOpacity = 0.2
-                            circleStrokeWidth = 1.0
+                            point = it,
+                            circleRadius = 60.0,
+                            circleColorInt = android.graphics.Color.parseColor(color),
+                            circleOpacity = 0.2,
+                            circleStrokeWidth = 1.0,
                             circleStrokeColorInt = android.graphics.Color.parseColor(color)
-                        }
+                        )
                     }
                 }
 
@@ -199,13 +194,12 @@ fun MapScreen(
                     }
 
                     CircleAnnotation(
-                        point = Point.fromLngLat(driver.location.lng, driver.location.lat)
-                    ) {
-                        circleRadius = 8.0
-                        circleColorInt = android.graphics.Color.parseColor(color)
-                        circleStrokeWidth = 2.0
+                        point = Point.fromLngLat(driver.location.lng, driver.location.lat),
+                        circleRadius = 8.0,
+                        circleColorInt = android.graphics.Color.parseColor(color),
+                        circleStrokeWidth = 2.0,
                         circleStrokeColorInt = android.graphics.Color.WHITE
-                    }
+                    )
                 }
             }
 

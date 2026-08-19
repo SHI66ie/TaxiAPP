@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
 import com.abuja.taxi.driver.ui.AuthViewModel
 import com.abuja.taxi.driver.ui.ChatViewModel
 import com.abuja.taxi.driver.ui.DriverViewModel
