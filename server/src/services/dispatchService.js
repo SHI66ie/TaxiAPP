@@ -132,6 +132,32 @@ export function updateRideStatus(rideId, status) {
   return ride;
 }
 
+export function submitKyc(driverId, kycData) {
+  const driver = drivers.find(d => d.id === driverId);
+  if (!driver) throw new Error('Driver not found');
+
+  const newKyc = {
+    driverId,
+    driverName: driver.name,
+    submittedAt: new Date().toISOString(),
+    status: 'PENDING',
+    ...kycData
+  };
+
+  // Replace or add to kyc docs
+  const existingIdx = kycDocs.findIndex(k => k.driverId === driverId);
+  if (existingIdx >= 0) {
+    kycDocs[existingIdx] = newKyc;
+  } else {
+    kycDocs.push(newKyc);
+  }
+
+  driver.kycStatus = 'SUBMITTED';
+  driver.status = 'PENDING_APPROVAL';
+
+  return newKyc;
+}
+
 export function approveDriverKyc(driverId) {
   const driver = drivers.find(d => d.id === driverId);
   const kyc = kycDocs.find(k => k.driverId === driverId);

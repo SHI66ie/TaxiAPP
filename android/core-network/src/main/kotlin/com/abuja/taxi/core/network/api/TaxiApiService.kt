@@ -54,7 +54,29 @@ interface TaxiApiService {
 
     @POST("messages/send")
     suspend fun sendMessage(@Body request: ChatMessageRequest): ApiResponse<ChatMessage>
+
+    @POST("drivers/kyc/submit")
+    suspend fun submitKyc(@Body request: KycRequest): ApiResponse<KycResponse>
 }
+
+@kotlinx.serialization.Serializable
+data class KycRequest(
+    val driverId: String,
+    val kycData: KycData
+)
+
+@kotlinx.serialization.Serializable
+data class KycData(
+    val nin: String,
+    val licenseNo: String,
+    val vehicleReg: String
+)
+
+@kotlinx.serialization.Serializable
+data class KycResponse(
+    val driverId: String,
+    val status: String
+)
 
 @kotlinx.serialization.Serializable
 data class ChatMessage(

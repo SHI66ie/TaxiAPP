@@ -14,8 +14,10 @@ import com.mapbox.common.MapboxOptions
 import com.abuja.taxi.driver.ui.AuthViewModel
 import com.abuja.taxi.driver.ui.ChatViewModel
 import com.abuja.taxi.driver.ui.DriverViewModel
+import com.abuja.taxi.driver.ui.KycViewModel
 import com.abuja.taxi.driver.ui.screens.ChatScreen
 import com.abuja.taxi.driver.ui.screens.DriverMapScreen
+import com.abuja.taxi.driver.ui.screens.KycScreen
 import com.abuja.taxi.driver.ui.screens.LoginScreen
 import com.abuja.taxi.driver.ui.screens.SignupScreen
 import com.abuja.taxi.driver.ui.theme.AbujaTaxiTheme
@@ -25,6 +27,7 @@ class MainActivity : ComponentActivity() {
     private val authViewModel: AuthViewModel by viewModels()
     private val driverViewModel: DriverViewModel by viewModels()
     private val chatViewModel: ChatViewModel by viewModels()
+    private val kycViewModel: KycViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,7 +46,13 @@ class MainActivity : ComponentActivity() {
                     var chatRideId by remember { mutableStateOf<String?>(null) }
 
                     if (user != null) {
-                        if (chatRideId != null) {
+                        if (user!!.role == "DRIVER" && user!!.id.startsWith("usr_")) { // New user without verified profile
+                             KycScreen(
+                                driverId = user!!.id,
+                                viewModel = kycViewModel,
+                                onLogout = { authViewModel.logout() }
+                            )
+                        } else if (chatRideId != null) {
                             ChatScreen(
                                 rideId = chatRideId!!,
                                 viewModel = chatViewModel,

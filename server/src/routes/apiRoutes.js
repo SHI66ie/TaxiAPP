@@ -9,7 +9,8 @@ import {
   findNearbyDrivers,
   bookRide,
   updateRideStatus,
-  approveDriverKyc
+  approveDriverKyc,
+  submitKyc
 } from '../services/dispatchService.js';
 import {
   getActiveBids,
@@ -297,6 +298,20 @@ router.get('/drivers', (req, res) => {
 // Get Driver KYC Queue
 router.get('/drivers/kyc', (req, res) => {
   res.json({ success: true, data: getKycDocs() });
+});
+
+// Submit Driver KYC
+router.post('/drivers/kyc/submit', (req, res) => {
+  try {
+    const { driverId, kycData } = req.body;
+    const result = submitKyc(driverId, kycData);
+    if (req.io) {
+      req.io.emit('driver_kyc_submitted', result);
+    }
+    res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
 });
 
 // Approve Driver KYC
