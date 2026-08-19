@@ -377,7 +377,14 @@ fun BookingCard(
                     }
                     
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Carpool?", style = MaterialTheme.typography.bodySmall)
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text("Carpool?", style = MaterialTheme.typography.bodySmall)
+                            if (isCarpool) {
+                                Badge(containerColor = AbujaEmerald, contentColor = Color.White) {
+                                    Text("Save 50%", modifier = Modifier.padding(2.dp))
+                                }
+                            }
+                        }
                         Switch(checked = isCarpool, onCheckedChange = onCarpoolChange)
                     }
                 }
@@ -415,6 +422,24 @@ fun RideStatusCard(
                 Spacer(modifier = Modifier.height(8.dp))
             }
             Text("🚕 Ride Booked!", style = MaterialTheme.typography.headlineSmall)
+            
+            if (ride.isCarpool) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Badge(containerColor = AbujaEmerald, contentColor = Color.White) {
+                        Text("Carpool Match Found")
+                    }
+                    if (ride.carpoolPartner != null) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("with ${ride.carpoolPartner}", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+                
+                val savings = ride.originalFare - ride.fare
+                if (savings > 0) {
+                    Text("You saved ₦$savings!", color = AbujaEmerald, style = MaterialTheme.typography.labelLarge)
+                }
+            }
+
             if (ride.paymentMethod != "Cash") {
                 Text(
                     text = if (paymentVerified) "💳 Payment Verified" else "⏳ Payment Pending",

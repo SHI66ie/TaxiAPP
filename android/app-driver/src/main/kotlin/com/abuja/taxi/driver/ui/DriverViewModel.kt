@@ -24,8 +24,8 @@ class DriverViewModel : ViewModel() {
     private val _walletInfo = MutableStateFlow<WalletInfo?>(null)
     val walletInfo: StateFlow<WalletInfo?> = _walletInfo
 
-    private val _activeRide = MutableStateFlow<Ride?>(null)
-    val activeRide: StateFlow<Ride?> = _activeRide
+    private val _activeRides = MutableStateFlow<List<Ride>>(emptyList())
+    val activeRides: StateFlow<List<Ride>> = _activeRides
 
     private val _surgeZones = MutableStateFlow<List<SurgeZone>>(emptyList())
     val surgeZones: StateFlow<List<SurgeZone>> = _surgeZones
@@ -74,15 +74,13 @@ class DriverViewModel : ViewModel() {
                 try {
                     val response = apiService.getRides()
                     if (response.success) {
-                        // Find a ride assigned to this driver that isn't completed/cancelled
-                        val ride = response.data.find { 
+                        // Find all rides assigned to this driver that aren't completed/cancelled
+                        val driverRides = response.data.filter { 
                             it.driverId == driverId && 
                             it.status != "COMPLETED" && 
                             it.status != "CANCELLED" 
                         }
-                        if (ride != null && _activeRide.value?.id != ride.id) {
-                            _activeRide.value = ride
-                        }
+                        _activeRides.value = driverRides
                     }
                 } catch (e: Exception) {}
                 delay(5000) // Poll every 5 seconds
@@ -99,12 +97,22 @@ class DriverViewModel : ViewModel() {
             try {
                 val response = apiService.updateRideStatus(rideId, StatusUpdate(status))
                 if (response.success) {
-                    _activeRide.value = response.data
+                    val updatedRide = response.data
+                    val currentRides = _activeRides.value.toMutableList()
+                    val idx = currentRides.indexOfFirst { it.id == rideId }
+                    
                     if (status == "COMPLETED" || status == "CANCELLED") {
-                        _activeRide.value = null
+                        if (idx >= 0) currentRides.removeAt(idx)
                         // Refresh wallet after completion
-                        response.data.driverId?.let { fetchWalletInfo(it) }
+                        updatedRide.driverId?.let { fetchWalletInfo(it) }
+                    } else {
+                        if (idx >= 0) {
+                            currentRides[idx] = updatedRide
+                        } else {
+                            currentRides.add(updatedRide)
+                        }
                     }
+                    _activeRides.value = currentRides
                 }
             } catch (e: Exception) {}
         }

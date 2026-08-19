@@ -7,6 +7,8 @@ import android.os.Looper
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
@@ -41,7 +43,7 @@ fun DriverMapScreen(
     val updateStatus by viewModel.updateStatus.collectAsState()
     val walletInfo by viewModel.walletInfo.collectAsState()
     val surgeZones by viewModel.surgeZones.collectAsState()
-    val activeRide by viewModel.activeRide.collectAsState()
+    val activeRides by viewModel.activeRides.collectAsState()
     val isOnline by viewModel.isOnline.collectAsState()
 
     var hasLocationPermission by remember {
@@ -173,20 +175,31 @@ fun DriverMapScreen(
         )
 
         // Ride Management Overlays
-        activeRide?.let { ride ->
-            if (ride.status == "MATCHED") {
-                RideRequestDialog(
-                    ride = ride,
-                    onAccept = { viewModel.updateRideStatus(ride.id, "ARRIVED") }, // Move to Arrived status on accept
-                    onDecline = { viewModel.updateRideStatus(ride.id, "CANCELLED") }
-                )
-            } else {
-                ActiveRideOverlay(
-                    ride = ride,
-                    onStatusUpdate = { status -> viewModel.updateRideStatus(ride.id, status) },
-                    onChat = { onNavigateToChat(ride.id) },
-                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 120.dp)
-                )
+        if (activeRides.isNotEmpty()) {
+            Box(modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 120.dp)) {
+                // If there's a new request (MATCHED status), prioritize showing that dialog
+                val pendingRide = activeRides.find { it.status == "MATCHED" }
+                if (pendingRide != null) {
+                    RideRequestDialog(
+                        ride = pendingRide,
+                        onAccept = { viewModel.updateRideStatus(pendingRide.id, "ARRIVED") },
+                        onDecline = { viewModel.updateRideStatus(pendingRide.id, "CANCELLED") }
+                    )
+                }
+
+                // Show all active rides in a scrollable list at the bottom
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(activeRides.filter { it.status != "MATCHED" }) { ride ->
+                        ActiveRideOverlay(
+                            ride = ride,
+                            onStatusUpdate = { status -> viewModel.updateRideStatus(ride.id, status) },
+                            onChat = { onNavigateToChat(ride.id) }
+                        )
+                    }
+                }
             }
         }
 

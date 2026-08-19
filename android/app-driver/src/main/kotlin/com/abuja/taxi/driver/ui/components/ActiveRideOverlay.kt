@@ -22,7 +22,15 @@ fun ActiveRideOverlay(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                Text("Ongoing Trip", style = MaterialTheme.typography.titleMedium)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Ongoing Trip", style = MaterialTheme.typography.titleMedium)
+                    if (ride.isCarpool) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Badge(containerColor = AbujaEmerald, contentColor = Color.White) {
+                            Text("Carpool", modifier = Modifier.padding(2.dp))
+                        }
+                    }
+                }
                 IconButton(onClick = onChat) {
                     Badge(containerColor = MaterialTheme.colorScheme.primary) {
                         Text("Chat", modifier = Modifier.padding(4.dp))
