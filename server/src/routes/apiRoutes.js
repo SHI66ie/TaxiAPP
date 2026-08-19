@@ -301,6 +301,30 @@ router.patch('/rides/:id/status', (req, res) => {
   }
 });
 
+// Verify QR Code & Start Trip
+router.post('/rides/:id/verify-qr', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { qrToken } = req.body;
+    const ride = getRides().find(r => r.id === id);
+
+    if (!ride) return res.status(404).json({ success: false, error: 'Ride not found' });
+
+    if (ride.qrCode === qrToken || qrToken.startsWith('ABJ-QR')) { // Allow generic mock tokens for MVP
+      const updated = updateRideStatus(id, 'IN_PROGRESS');
+      if (req.io) {
+        req.io.emit('ride_status_updated', updated);
+        req.io.emit('qr_verified', { rideId: id, success: true });
+      }
+      res.json({ success: true, data: updated });
+    } else {
+      res.status(400).json({ success: false, error: 'Invalid QR Code' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Get All Drivers
 router.get('/drivers', (req, res) => {
   res.json({ success: true, data: getDrivers() });

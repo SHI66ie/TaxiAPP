@@ -72,7 +72,15 @@ interface TaxiApiService {
 
     @POST("rides/{id}/rate-passenger")
     suspend fun ratePassenger(@Path("id") id: String, @Body request: RateRequest): ApiResponse<String>
+
+    @POST("rides/{id}/verify-qr")
+    suspend fun verifyQrCode(@Path("id") id: String, @Body request: QrVerificationRequest): ApiResponse<Ride>
 }
+
+@kotlinx.serialization.Serializable
+data class QrVerificationRequest(
+    val qrToken: String
+)
 
 @kotlinx.serialization.Serializable
 data class RateRequest(

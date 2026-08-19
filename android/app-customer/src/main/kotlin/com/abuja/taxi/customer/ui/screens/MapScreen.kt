@@ -53,7 +53,8 @@ val ABUJA_LANDMARKS = listOf(
 fun MapScreen(
     viewModel: CustomerViewModel,
     authViewModel: AuthViewModel,
-    onNavigateToChat: (String) -> Unit
+    onNavigateToChat: (String) -> Unit,
+    onNavigateToScan: () -> Unit
 ) {
     val context = LocalContext.current
     val drivers by viewModel.drivers.collectAsState()
@@ -247,6 +248,7 @@ fun MapScreen(
                         sosActive = sosActive,
                         paymentVerified = paymentVerified,
                         onChat = { onNavigateToChat(bookedRide!!.id) },
+                        onScan = onNavigateToScan,
                         onDone = { viewModel.resetBooking() }
                     )
                 } else if (selectedDestination == null) {
@@ -454,6 +456,7 @@ fun RideStatusCard(
     sosActive: Boolean,
     paymentVerified: Boolean,
     onChat: () -> Unit,
+    onScan: () -> Unit,
     onDone: () -> Unit
 ) {
     Card(
@@ -470,6 +473,16 @@ fun RideStatusCard(
             }
             Text("🚕 Ride Booked!", style = MaterialTheme.typography.headlineSmall)
             
+            if (ride.status == "ARRIVED") {
+                Button(
+                    onClick = onScan,
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = AbujaGold, contentColor = Color.Black)
+                ) {
+                    Text("SCAN DRIVER QR TO START")
+                }
+            }
+
             if (ride.isCarpool) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Badge(containerColor = AbujaEmerald, contentColor = Color.White) {

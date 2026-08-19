@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import com.abuja.taxi.customer.ui.theme.AbujaEmerald
 import com.abuja.taxi.customer.ui.screens.LoginScreen
 import com.abuja.taxi.customer.ui.screens.MapScreen
+import com.abuja.taxi.customer.ui.screens.QrScannerScreen
 import com.abuja.taxi.customer.ui.screens.RatingScreen
 import com.abuja.taxi.customer.ui.screens.ReferralScreen
 import com.abuja.taxi.customer.ui.screens.SignupScreen
@@ -51,6 +52,7 @@ class MainActivity : ComponentActivity() {
                     val bookedRide by customerViewModel.bookedRide.collectAsState()
                     var showSignup by remember { mutableStateOf(false) }
                     var showReferral by remember { mutableStateOf(false) }
+                    var showScanner by remember { mutableStateOf(false) }
                     var chatRideId by remember { mutableStateOf<String?>(null) }
 
                     if (user != null) {
@@ -58,6 +60,14 @@ class MainActivity : ComponentActivity() {
                             RatingScreen(
                                 rideId = bookedRide!!.id,
                                 viewModel = customerViewModel
+                            )
+                        } else if (showScanner && bookedRide != null) {
+                            QrScannerScreen(
+                                onQrScanned = { qr ->
+                                    customerViewModel.verifyQrCode(bookedRide!!.id, qr)
+                                    showScanner = false
+                                },
+                                onBack = { showScanner = false }
                             )
                         } else if (showReferral) {
                             ReferralScreen(
@@ -74,7 +84,8 @@ class MainActivity : ComponentActivity() {
                             MapScreen(
                                 viewModel = customerViewModel,
                                 authViewModel = authViewModel,
-                                onNavigateToChat = { chatRideId = it }
+                                onNavigateToChat = { chatRideId = it },
+                                onNavigateToScan = { showScanner = true }
                             )
                             
                             // Floating action button for Referral (Simulated for MVP)

@@ -8,6 +8,7 @@ import com.abuja.taxi.core.network.api.NetworkModule
 import com.abuja.taxi.core.network.api.PaymentInitRequest
 import com.abuja.taxi.core.network.api.PaymentMethod
 import com.abuja.taxi.core.network.api.PaymentVerifyRequest
+import com.abuja.taxi.core.network.api.QrVerificationRequest
 import com.abuja.taxi.core.network.api.RateRequest
 import com.abuja.taxi.core.network.api.RideBookingRequest
 import com.abuja.taxi.core.network.api.SocketManager
@@ -197,6 +198,21 @@ class CustomerViewModel : ViewModel() {
                     _paymentUrl.value = null
                 }
             } catch (e: Exception) {}
+        }
+    }
+
+    fun verifyQrCode(rideId: String, qrToken: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val response = apiService.verifyQrCode(rideId, QrVerificationRequest(qrToken))
+                if (response.success) {
+                    _bookedRide.value = response.data
+                }
+            } catch (e: Exception) {
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 

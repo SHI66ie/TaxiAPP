@@ -2,9 +2,11 @@ package com.abuja.taxi.driver.ui.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.abuja.taxi.core.network.models.Ride
 
@@ -15,6 +17,41 @@ fun ActiveRideOverlay(
     onChat: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var showQrDialog by remember { mutableStateOf(false) }
+
+    if (showQrDialog) {
+        AlertDialog(
+            onDismissRequest = { showQrDialog = false },
+            title = { Text("Trip Verification QR") },
+            text = {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Passenger scans this to start trip", style = MaterialTheme.typography.bodySmall)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    // Simulated QR Code UI
+                    Box(
+                        modifier = Modifier
+                            .size(200.dp)
+                            .background(Color.White, RoundedCornerShape(8.dp))
+                            .border(2.dp, Color.Black, RoundedCornerShape(8.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = ride.qrCode ?: "QR-ERROR",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(onClick = { showQrDialog = false }) {
+                    Text("Close")
+                }
+            }
+        )
+    }
+
     Card(
         modifier = modifier.fillMaxWidth().padding(16.dp),
         elevation = CardDefaults.cardElevation(8.dp),
@@ -52,8 +89,8 @@ fun ActiveRideOverlay(
                         }
                     }
                     "ARRIVED" -> {
-                        Button(onClick = { onStatusUpdate("IN_PROGRESS") }, modifier = Modifier.weight(1f)) {
-                            Text("Start Trip")
+                        Button(onClick = { showQrDialog = true }, modifier = Modifier.weight(1f)) {
+                            Text("Show QR Code")
                         }
                     }
                     "IN_PROGRESS" -> {
