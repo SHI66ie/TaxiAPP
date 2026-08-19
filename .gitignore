@@ -23,3 +23,11 @@ proposal_content.txt
 
 # Local Netlify folder
 .netlify
+
+# Android
+android/.gradle/
+android/build/
+android/*/build/
+android/local.properties
+android/gradle.properties
+android/**/mapbox_config.xml
