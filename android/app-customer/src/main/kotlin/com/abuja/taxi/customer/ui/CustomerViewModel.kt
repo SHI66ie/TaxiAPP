@@ -5,6 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.abuja.taxi.core.network.api.FareRequest
 import com.abuja.taxi.core.network.api.FleetCategory
 import com.abuja.taxi.core.network.api.NetworkModule
+import com.abuja.taxi.core.network.api.PaymentInitRequest
+import com.abuja.taxi.core.network.api.PaymentMethod
+import com.abuja.taxi.core.network.api.PaymentVerifyRequest
 import com.abuja.taxi.core.network.api.RideBookingRequest
 import com.abuja.taxi.core.network.api.SosRequest
 import com.abuja.taxi.core.network.models.Coordinates
@@ -23,11 +26,20 @@ class CustomerViewModel : ViewModel() {
     private val _fleetCategories = MutableStateFlow<Map<String, FleetCategory>>(emptyMap())
     val fleetCategories: StateFlow<Map<String, FleetCategory>> = _fleetCategories
 
+    private val _paymentMethods = MutableStateFlow<List<PaymentMethod>>(emptyList())
+    val paymentMethods: StateFlow<List<PaymentMethod>> = _paymentMethods
+
     private val _estimation = MutableStateFlow<com.abuja.taxi.core.network.api.FareEstimation?>(null)
     val estimation: StateFlow<com.abuja.taxi.core.network.api.FareEstimation?> = _estimation
 
     private val _bookedRide = MutableStateFlow<Ride?>(null)
     val bookedRide: StateFlow<Ride?> = _bookedRide
+
+    private val _paymentUrl = MutableStateFlow<String?>(null)
+    val paymentUrl: StateFlow<String?> = _paymentUrl
+
+    private val _paymentVerified = MutableStateFlow(false)
+    val paymentVerified: StateFlow<Boolean> = _paymentVerified
 
     private val _sosActive = MutableStateFlow(false)
     val sosActive: StateFlow<Boolean> = _sosActive
@@ -37,6 +49,7 @@ class CustomerViewModel : ViewModel() {
 
     init {
         fetchFleetCategories()
+        fetchPaymentMethods()
     }
 
     private fun fetchFleetCategories() {
@@ -45,6 +58,17 @@ class CustomerViewModel : ViewModel() {
                 val response = apiService.getFleetCategories()
                 if (response.success) {
                     _fleetCategories.value = response.data
+                }
+            } catch (e: Exception) {}
+        }
+    }
+
+    private fun fetchPaymentMethods() {
+        viewModelScope.launch {
+            try {
+                val response = apiService.getPaymentMethods()
+                if (response.success) {
+                    _paymentMethods.value = response.data
                 }
             } catch (e: Exception) {}
         }
@@ -89,7 +113,8 @@ class CustomerViewModel : ViewModel() {
         dropoffCoords: Coordinates,
         vehicleType: String,
         isCarpool: Boolean,
-        fare: Int
+        fare: Int,
+        paymentMethod: String
     ) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -97,16 +122,44 @@ class CustomerViewModel : ViewModel() {
                 val response = apiService.bookRide(
                     RideBookingRequest(
                         name, phone, pickup, dropoff, pickupCoords, dropoffCoords,
-                        vehicleType, isCarpool, fare, "Paystack"
+                        vehicleType, isCarpool, fare, paymentMethod
                     )
                 )
                 if (response.success) {
-                    _bookedRide.value = response.data.ride ?: response.data.rides?.firstOrNull()
+                    val ride = response.data.ride ?: response.data.rides?.firstOrNull()
+                    _bookedRide.value = ride
+                    
+                    if (paymentMethod != "Cash" && ride != null) {
+                        initializePayment(ride.id, fare, "passenger@taxi.com", paymentMethod)
+                    }
                 }
             } catch (e: Exception) {
             } finally {
                 _isLoading.value = false
             }
+        }
+    }
+
+    private fun initializePayment(rideId: String, amount: Int, email: String, method: String) {
+        viewModelScope.launch {
+            try {
+                val response = apiService.initializePayment(PaymentInitRequest(rideId, amount, email, method))
+                if (response.success) {
+                    _paymentUrl.value = response.data.authorizationUrl
+                }
+            } catch (e: Exception) {}
+        }
+    }
+
+    fun verifyPayment(reference: String) {
+        viewModelScope.launch {
+            try {
+                val response = apiService.verifyPayment(PaymentVerifyRequest(reference))
+                if (response.success && response.data) {
+                    _paymentVerified.value = true
+                    _paymentUrl.value = null
+                }
+            } catch (e: Exception) {}
         }
     }
 
@@ -127,5 +180,7 @@ class CustomerViewModel : ViewModel() {
         _bookedRide.value = null
         _estimation.value = null
         _sosActive.value = false
+        _paymentUrl.value = null
+        _paymentVerified.value = false
     }
 }

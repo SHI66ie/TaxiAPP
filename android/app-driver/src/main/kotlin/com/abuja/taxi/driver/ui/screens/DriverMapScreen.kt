@@ -30,6 +30,7 @@ import kotlinx.coroutines.delay
 fun DriverMapScreen(viewModel: DriverViewModel, driverId: String) {
     val context = LocalContext.current
     val updateStatus by viewModel.updateStatus.collectAsState()
+    val walletInfo by viewModel.walletInfo.collectAsState()
 
     var hasLocationPermission by remember {
         mutableStateOf(
@@ -60,6 +61,7 @@ fun DriverMapScreen(viewModel: DriverViewModel, driverId: String) {
         if (!hasLocationPermission) {
             permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
+        viewModel.fetchWalletInfo(driverId)
     }
 
     LaunchedEffect(hasLocationPermission) {
@@ -130,6 +132,13 @@ fun DriverMapScreen(viewModel: DriverViewModel, driverId: String) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(text = "Driver ID: $driverId", style = MaterialTheme.typography.bodyMedium)
+                walletInfo?.let {
+                    Text(
+                        text = "Earnings: ₦${it.balance}",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
                 Text(text = "Status: $updateStatus", style = MaterialTheme.typography.bodySmall)
                 currentPoint?.let {
                     Text(

@@ -30,7 +30,53 @@ interface TaxiApiService {
 
     @POST("sos/trigger")
     suspend fun triggerSos(@Body request: SosRequest): ApiResponse<SosResponse>
+
+    @GET("payments/methods")
+    suspend fun getPaymentMethods(): ApiResponse<List<PaymentMethod>>
+
+    @POST("payments/initialize")
+    suspend fun initializePayment(@Body request: PaymentInitRequest): ApiResponse<PaymentInitResponse>
+
+    @POST("payments/verify")
+    suspend fun verifyPayment(@Body request: PaymentVerifyRequest): ApiResponse<Boolean>
+
+    @GET("payments/wallets")
+    suspend fun getDriverWallets(): ApiResponse<List<WalletInfo>>
 }
+
+@kotlinx.serialization.Serializable
+data class PaymentMethod(
+    val id: String,
+    val name: String,
+    val icon: String? = null
+)
+
+@kotlinx.serialization.Serializable
+data class PaymentInitRequest(
+    val rideId: String,
+    val amount: Int,
+    val email: String,
+    val method: String
+)
+
+@kotlinx.serialization.Serializable
+data class PaymentInitResponse(
+    val authorizationUrl: String,
+    val accessCode: String,
+    val reference: String
+)
+
+@kotlinx.serialization.Serializable
+data class PaymentVerifyRequest(
+    val reference: String
+)
+
+@kotlinx.serialization.Serializable
+data class WalletInfo(
+    val driverId: String,
+    val balance: Int,
+    val tripsCount: Int
+)
 
 @kotlinx.serialization.Serializable
 data class SosRequest(

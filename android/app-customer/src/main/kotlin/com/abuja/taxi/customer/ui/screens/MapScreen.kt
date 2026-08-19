@@ -24,6 +24,7 @@ import androidx.core.content.ContextCompat
 import com.abuja.taxi.core.network.models.Coordinates
 import com.abuja.taxi.customer.ui.AuthViewModel
 import com.abuja.taxi.customer.ui.CustomerViewModel
+import com.abuja.taxi.customer.ui.components.PaymentWebView
 import com.abuja.taxi.customer.ui.components.SosButton
 import com.mapbox.geojson.Point
 import com.mapbox.maps.MapInitOptions
@@ -51,13 +52,17 @@ fun MapScreen(viewModel: CustomerViewModel, authViewModel: AuthViewModel) {
     val drivers by viewModel.drivers.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val fleetCategories by viewModel.fleetCategories.collectAsState()
+    val paymentMethods by viewModel.paymentMethods.collectAsState()
     val estimation by viewModel.estimation.collectAsState()
     val bookedRide by viewModel.bookedRide.collectAsState()
+    val paymentUrl by viewModel.paymentUrl.collectAsState()
+    val paymentVerified by viewModel.paymentVerified.collectAsState()
     val sosActive by viewModel.sosActive.collectAsState()
     val user by authViewModel.currentUser.collectAsState()
 
     var selectedDestination by remember { mutableStateOf<AbujaLandmark?>(null) }
     var selectedVehicleType by remember { mutableStateOf("standard") }
+    var selectedPaymentMethod by remember { mutableStateOf("Cash") }
     var isCarpool by remember { mutableStateOf(false) }
 
     var hasLocationPermission by remember {
@@ -154,7 +159,7 @@ fun MapScreen(viewModel: CustomerViewModel, authViewModel: AuthViewModel) {
                     .padding(16.dp)
             ) {
                 if (bookedRide != null) {
-                    RideStatusCard(bookedRide!!, sosActive, onDone = { viewModel.resetBooking() })
+                    RideStatusCard(bookedRide!!, sosActive, paymentVerified, onDone = { viewModel.resetBooking() })
                 } else if (selectedDestination == null) {
                     DestinationSearchCard(onDestinationSelected = {
                         selectedDestination = it
@@ -169,7 +174,9 @@ fun MapScreen(viewModel: CustomerViewModel, authViewModel: AuthViewModel) {
                         destination = selectedDestination!!,
                         estimation = estimation,
                         fleetCategories = fleetCategories,
+                        paymentMethods = paymentMethods,
                         selectedVehicleType = selectedVehicleType,
+                        selectedPaymentMethod = selectedPaymentMethod,
                         isCarpool = isCarpool,
                         onVehicleTypeChange = {
                             selectedVehicleType = it
@@ -179,6 +186,7 @@ fun MapScreen(viewModel: CustomerViewModel, authViewModel: AuthViewModel) {
                                 it
                             )
                         },
+                        onPaymentMethodChange = { selectedPaymentMethod = it },
                         onCarpoolChange = { isCarpool = it },
                         onBook = {
                             user?.let { u ->
@@ -191,12 +199,31 @@ fun MapScreen(viewModel: CustomerViewModel, authViewModel: AuthViewModel) {
                                     selectedDestination!!.coords,
                                     selectedVehicleType,
                                     isCarpool,
-                                    estimation?.estimatedFare ?: 1500
+                                    estimation?.estimatedFare ?: 1500,
+                                    selectedPaymentMethod
                                 )
                             }
                         },
                         onCancel = { selectedDestination = null }
                     )
+                }
+            }
+
+            // Payment WebView Overlay
+            if (paymentUrl != null) {
+                Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
+                    PaymentWebView(
+                        url = paymentUrl!!,
+                        onPaymentComplete = { reference ->
+                            viewModel.verifyPayment(reference)
+                        }
+                    )
+                    IconButton(
+                        onClick = { viewModel.resetBooking() },
+                        modifier = Modifier.align(Alignment.TopStart).padding(16.dp)
+                    ) {
+                        Icon(Icons.Default.LocationOn, contentDescription = "Close")
+                    }
                 }
             }
         }
@@ -239,9 +266,12 @@ fun BookingCard(
     destination: AbujaLandmark,
     estimation: com.abuja.taxi.core.network.api.FareEstimation?,
     fleetCategories: Map<String, com.abuja.taxi.core.network.api.FleetCategory>,
+    paymentMethods: List<com.abuja.taxi.core.network.api.PaymentMethod>,
     selectedVehicleType: String,
+    selectedPaymentMethod: String,
     isCarpool: Boolean,
     onVehicleTypeChange: (String) -> Unit,
+    onPaymentMethodChange: (String) -> Unit,
     onCarpoolChange: (Boolean) -> Unit,
     onBook: () -> Unit,
     onCancel: () -> Unit
@@ -271,6 +301,21 @@ fun BookingCard(
                         selected = selectedVehicleType == category.id,
                         onClick = { onVehicleTypeChange(category.id) },
                         label = { Text(category.name) }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("Payment Method", style = MaterialTheme.typography.labelLarge)
+            Row(
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                paymentMethods.forEach { method ->
+                    FilterChip(
+                        selected = selectedPaymentMethod == method.id,
+                        onClick = { onPaymentMethodChange(method.id) },
+                        label = { Text(method.name) }
                     )
                 }
             }
@@ -308,7 +353,7 @@ fun BookingCard(
 }
 
 @Composable
-fun RideStatusCard(ride: com.abuja.taxi.core.network.models.Ride, sosActive: Boolean, onDone: () -> Unit) {
+fun RideStatusCard(ride: com.abuja.taxi.core.network.models.Ride, sosActive: Boolean, paymentVerified: Boolean, onDone: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -322,6 +367,13 @@ fun RideStatusCard(ride: com.abuja.taxi.core.network.models.Ride, sosActive: Boo
                 Spacer(modifier = Modifier.height(8.dp))
             }
             Text("🚕 Ride Booked!", style = MaterialTheme.typography.headlineSmall)
+            if (ride.paymentMethod != "Cash") {
+                Text(
+                    text = if (paymentVerified) "💳 Payment Verified" else "⏳ Payment Pending",
+                    color = if (paymentVerified) AbujaEmerald else Color.Gray,
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
             Text("Driver: ${ride.driverName ?: "Searching..."}", style = MaterialTheme.typography.bodyMedium)
             Text("Vehicle: ${ride.driverVehicle ?: "---"}", style = MaterialTheme.typography.bodySmall)
             Spacer(modifier = Modifier.height(8.dp))
