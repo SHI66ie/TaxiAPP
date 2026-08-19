@@ -31,7 +31,10 @@ import com.mapbox.maps.MapInitOptions
 import com.mapbox.maps.Style
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
+import com.mapbox.maps.extension.compose.annotation.generated.PolylineAnnotation
 import com.mapbox.maps.extension.compose.animation.viewport.rememberViewportState
+import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
+import com.mapbox.geojson.LineString
 
 data class AbujaLandmark(val name: String, val coords: Coordinates)
 
@@ -100,6 +103,28 @@ fun MapScreen(
         }
     }
 
+    // Auto-fit camera when route changes
+    LaunchedEffect(selectedDestination, bookedRide) {
+        val points = mutableListOf<Point>()
+        bookedRide?.let {
+            points.add(Point.fromLngLat(it.pickupCoords.lng, it.pickupCoords.lat))
+            points.add(Point.fromLngLat(it.dropoffCoords.lng, it.dropoffCoords.lat))
+        } ?: selectedDestination?.let {
+            points.add(Point.fromLngLat(7.3985, 9.0765)) // Mock current loc
+            points.add(Point.fromLngLat(it.coords.lng, it.coords.lat))
+        }
+
+        if (points.size >= 2) {
+            viewportState.setCameraOptions {
+                // Fit logic: for MVP just center between them and zoom out
+                val midLat = points.map { it.latitude() }.average()
+                val midLng = points.map { it.longitude() }.average()
+                center(Point.fromLngLat(midLng, midLat))
+                zoom(11.0)
+            }
+        }
+    }
+
     Scaffold { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             MapboxMap(
@@ -107,11 +132,33 @@ fun MapScreen(
                 mapInitOptionsFactory = { context ->
                     MapInitOptions(
                         context = context,
-                        styleUri = Style.MAPBOX_STREETS
+                        styleUri = Style.TRAFFIC_DAY
                     )
                 },
                 viewportState = viewportState
             ) {
+                // Route Visualization
+                val routePoints = remember(selectedDestination, bookedRide) {
+                    val pts = mutableListOf<Point>()
+                    bookedRide?.let {
+                        pts.add(Point.fromLngLat(it.pickupCoords.lng, it.pickupCoords.lat))
+                        pts.add(Point.fromLngLat(it.dropoffCoords.lng, it.dropoffCoords.lat))
+                    } ?: selectedDestination?.let {
+                        pts.add(Point.fromLngLat(7.3985, 9.0765))
+                        pts.add(Point.fromLngLat(it.coords.lng, it.coords.lat))
+                    }
+                    pts
+                }
+
+                if (routePoints.size >= 2) {
+                    PolylineAnnotation(
+                        lineString = LineString.fromPoints(routePoints)
+                    ) {
+                        lineColorInt = android.graphics.Color.parseColor("#007AFF")
+                        lineWidth = 5.0
+                    }
+                }
+
                 // Surge Zones Heatmap
                 surgeZones.forEach { zone ->
                     val center = when (zone.id) {

@@ -23,13 +23,16 @@ import com.abuja.taxi.driver.ui.DriverViewModel
 import com.abuja.taxi.driver.ui.components.ActiveRideOverlay
 import com.abuja.taxi.driver.ui.components.RideRequestDialog
 import com.google.android.gms.location.*
+import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
 import com.mapbox.maps.MapInitOptions
 import com.mapbox.maps.Style
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
+import com.mapbox.maps.extension.compose.annotation.generated.PolylineAnnotation
 import com.mapbox.maps.extension.compose.animation.viewport.rememberViewportState
 import com.mapbox.maps.extension.compose.LocationComponentSettings
+import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
 import kotlinx.coroutines.delay
 
 @SuppressLint("MissingPermission")
@@ -68,6 +71,7 @@ fun DriverMapScreen(
         setCameraOptions {
             center(Point.fromLngLat(7.3985, 9.0765)) // Default to Abuja
             zoom(15.0)
+            pitch(45.0) // Enable 3D Tilt for navigation
         }
     }
 
@@ -123,7 +127,7 @@ fun DriverMapScreen(
             mapInitOptionsFactory = { context ->
                 MapInitOptions(
                     context = context,
-                    styleUri = Style.MAPBOX_STREETS
+                    styleUri = Style.TRAFFIC_DAY
                 )
             },
             viewportState = viewportState,
@@ -132,6 +136,24 @@ fun DriverMapScreen(
                 pulsingEnabled = true
             )
         ) {
+            // Ongoing Routes
+            activeRides.forEach { ride ->
+                currentPoint?.let { start ->
+                    val destination = if (ride.status == "IN_PROGRESS") {
+                        Point.fromLngLat(ride.dropoffCoords.lng, ride.dropoffCoords.lat)
+                    } else {
+                        Point.fromLngLat(ride.pickupCoords.lng, ride.pickupCoords.lat)
+                    }
+                    
+                    PolylineAnnotation(
+                        lineString = LineString.fromPoints(listOf(start, destination))
+                    ) {
+                        lineColorInt = android.graphics.Color.parseColor("#50C878")
+                        lineWidth = 4.0
+                    }
+                }
+            }
+
             // Surge Zones Heatmap
             surgeZones.forEach { zone ->
                 val center = when (zone.id) {
