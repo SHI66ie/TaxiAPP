@@ -1,4 +1,5 @@
 ---
+name: platform-interconnection
 description: Platform Interconnection and Real-time Communication Workflow
 ---
 
