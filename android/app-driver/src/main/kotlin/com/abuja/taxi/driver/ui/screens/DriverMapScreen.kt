@@ -23,18 +23,19 @@ import com.abuja.taxi.driver.ui.DriverViewModel
 import com.abuja.taxi.driver.ui.components.ActiveRideOverlay
 import com.abuja.taxi.driver.ui.components.RideRequestDialog
 import com.google.android.gms.location.*
-import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
-import com.mapbox.maps.MapInitOptions
+import com.mapbox.maps.MapboxExperimental
 import com.mapbox.maps.Style
+import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap
+import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
 import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
 import com.mapbox.maps.extension.compose.annotation.generated.PolylineAnnotation
-import com.mapbox.maps.extension.compose.animation.viewport.rememberViewportState
-import com.mapbox.maps.extension.compose.LocationComponentSettings
-import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
+import com.mapbox.maps.extension.compose.style.MapStyle
+import com.mapbox.maps.plugin.locationcomponent.location
 import kotlinx.coroutines.delay
 
+@OptIn(MapboxExperimental::class)
 @SuppressLint("MissingPermission")
 @Composable
 fun DriverMapScreen(
@@ -67,7 +68,9 @@ fun DriverMapScreen(
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     var currentPoint by remember { mutableStateOf<Point?>(null) }
 
-    val viewportState = rememberViewportState {
+    var hasCenteredOnDriver by remember { mutableStateOf(false) }
+
+    val viewportState = rememberMapViewportState {
         setCameraOptions {
             center(Point.fromLngLat(7.3985, 9.0765)) // Default to Abuja
             zoom(15.0)
@@ -96,7 +99,8 @@ fun DriverMapScreen(
                         currentPoint = point
                         
                         // Center camera on first location update
-                        if (viewportState.cameraOptions.center == Point.fromLngLat(7.3985, 9.0765)) {
+                        if (!hasCenteredOnDriver) {
+                            hasCenteredOnDriver = true
                             viewportState.setCameraOptions {
                                 center(point)
                             }
@@ -124,18 +128,16 @@ fun DriverMapScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         MapboxMap(
             modifier = Modifier.fillMaxSize(),
-            mapInitOptionsFactory = { context ->
-                MapInitOptions(
-                    context = context,
-                    styleUri = Style.TRAFFIC_DAY
-                )
-            },
-            viewportState = viewportState,
-            locationComponentSettings = LocationComponentSettings(
-                enabled = hasLocationPermission,
-                pulsingEnabled = true
-            )
+            mapViewportState = viewportState,
+            style = { MapStyle(style = Style.TRAFFIC_DAY) }
         ) {
+            MapEffect(hasLocationPermission) { mapView ->
+                mapView.location.updateSettings {
+                    enabled = hasLocationPermission
+                    pulsingEnabled = true
+                }
+            }
+
             // Ongoing Routes
             activeRides.forEach { ride ->
                 currentPoint?.let { start ->
@@ -146,11 +148,10 @@ fun DriverMapScreen(
                     }
                     
                     PolylineAnnotation(
-                        lineString = LineString.fromPoints(listOf(start, destination))
-                    ) {
-                        lineColorInt = android.graphics.Color.parseColor("#50C878")
+                        points = listOf(start, destination),
+                        lineColorInt = android.graphics.Color.parseColor("#50C878"),
                         lineWidth = 4.0
-                    }
+                    )
                 }
             }
 
@@ -174,14 +175,13 @@ fun DriverMapScreen(
                     }
 
                     CircleAnnotation(
-                        point = it
-                    ) {
-                        circleRadius = 60.0
-                        circleColorInt = android.graphics.Color.parseColor(color)
-                        circleOpacity = 0.2
-                        circleStrokeWidth = 1.0
+                        point = it,
+                        circleRadius = 60.0,
+                        circleColorInt = android.graphics.Color.parseColor(color),
+                        circleOpacity = 0.2,
+                        circleStrokeWidth = 1.0,
                         circleStrokeColorInt = android.graphics.Color.parseColor(color)
-                    }
+                    )
                 }
             }
         }
