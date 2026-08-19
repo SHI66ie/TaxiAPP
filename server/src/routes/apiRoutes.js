@@ -34,8 +34,29 @@ import {
   requestDriverPayout,
   getPaymentHistory
 } from '../services/paymentService.js';
+import { registerUser, loginUser } from '../services/authService.js';
 
 const router = express.Router();
+
+// Auth Endpoints
+router.post('/auth/register', (req, res) => {
+  try {
+    const user = registerUser(req.body);
+    res.json({ success: true, data: user });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+router.post('/auth/login', (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = loginUser(email, password);
+    res.json({ success: true, data: user });
+  } catch (err) {
+    res.status(401).json({ success: false, error: err.message });
+  }
+});
 
 // Fare Estimation
 router.post('/fare/estimate', (req, res) => {
