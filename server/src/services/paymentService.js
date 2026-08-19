@@ -114,3 +114,27 @@ export function requestDriverPayout({ driverId, amount, bankName, accountNumber 
 export function getPaymentHistory() {
   return paymentTransactions;
 }
+
+export function getDriverEarnings(driverId) {
+  const transactions = paymentTransactions.filter(t => t.status === 'SUCCESS'); // Simplified for MVP
+  // In a real app, you'd filter by driverId in the ride record associated with the transaction
+
+  const today = new Date().toISOString().split('T')[0];
+  const todayEarnings = transactions
+    .filter(t => t.timestamp.startsWith(today))
+    .reduce((sum, t) => sum + (t.amount * 0.85), 0);
+
+  const weeklyEarnings = transactions
+    .reduce((sum, t) => sum + (t.amount * 0.85), 0);
+
+  return {
+    todayTotal: Math.round(todayEarnings),
+    weeklyTotal: Math.round(weeklyEarnings),
+    transactions: transactions.map(t => ({
+      id: t.id,
+      rideId: t.rideId,
+      amount: Math.round(t.amount * 0.85),
+      timestamp: t.timestamp
+    }))
+  };
+}

@@ -33,7 +33,8 @@ import {
   verifyPayment,
   getDriverWallets,
   requestDriverPayout,
-  getPaymentHistory
+  getPaymentHistory,
+  getDriverEarnings
 } from '../services/paymentService.js';
 import { registerUser, loginUser } from '../services/authService.js';
 
@@ -218,6 +219,16 @@ router.post('/payments/verify', (req, res) => {
 
 router.get('/payments/wallets', (req, res) => {
   res.json({ success: true, data: getDriverWallets() });
+});
+
+router.get('/drivers/:id/earnings', (req, res) => {
+  try {
+    const { id } = req.params;
+    const earnings = getDriverEarnings(id);
+    res.json({ success: true, data: earnings });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 router.post('/payments/payout', (req, res) => {

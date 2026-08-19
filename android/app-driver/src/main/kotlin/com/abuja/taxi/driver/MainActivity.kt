@@ -11,12 +11,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.activity.viewModels
 import com.mapbox.common.MapboxOptions
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.ui.Alignment
 import com.abuja.taxi.driver.ui.AuthViewModel
 import com.abuja.taxi.driver.ui.ChatViewModel
 import com.abuja.taxi.driver.ui.DriverViewModel
+import com.abuja.taxi.driver.ui.EarningsViewModel
 import com.abuja.taxi.driver.ui.KycViewModel
 import com.abuja.taxi.driver.ui.screens.ChatScreen
 import com.abuja.taxi.driver.ui.screens.DriverMapScreen
+import com.abuja.taxi.driver.ui.screens.EarningsDashboardScreen
 import com.abuja.taxi.driver.ui.screens.KycScreen
 import com.abuja.taxi.driver.ui.screens.LoginScreen
 import com.abuja.taxi.driver.ui.screens.PassengerRatingScreen
@@ -29,6 +35,7 @@ class MainActivity : ComponentActivity() {
     private val driverViewModel: DriverViewModel by viewModels()
     private val chatViewModel: ChatViewModel by viewModels()
     private val kycViewModel: KycViewModel by viewModels()
+    private val earningsViewModel: EarningsViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,6 +52,7 @@ class MainActivity : ComponentActivity() {
                     val user by authViewModel.currentUser.collectAsState()
                     val pendingRatingRideId by driverViewModel.pendingRatingRideId.collectAsState()
                     var showSignup by remember { mutableStateOf(false) }
+                    var showEarnings by remember { mutableStateOf(false) }
                     var chatRideId by remember { mutableStateOf<String?>(null) }
 
                     if (user != null) {
@@ -59,6 +67,12 @@ class MainActivity : ComponentActivity() {
                                 rideId = pendingRatingRideId!!,
                                 viewModel = driverViewModel
                             )
+                        } else if (showEarnings) {
+                            EarningsDashboardScreen(
+                                driverId = user!!.id,
+                                viewModel = earningsViewModel,
+                                onBack = { showEarnings = false }
+                            )
                         } else if (chatRideId != null) {
                             ChatScreen(
                                 rideId = chatRideId!!,
@@ -66,11 +80,22 @@ class MainActivity : ComponentActivity() {
                                 onBack = { chatRideId = null }
                             )
                         } else {
-                            DriverMapScreen(
-                                viewModel = driverViewModel,
-                                driverId = user!!.id,
-                                onNavigateToChat = { chatRideId = it }
-                            )
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                DriverMapScreen(
+                                    viewModel = driverViewModel,
+                                    driverId = user!!.id,
+                                    onNavigateToChat = { chatRideId = it }
+                                )
+                                
+                                // Floating Action Button for Earnings
+                                FloatingActionButton(
+                                    onClick = { showEarnings = true },
+                                    modifier = Modifier.padding(16.dp).align(Alignment.TopEnd),
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                                ) {
+                                    Text("₦", modifier = Modifier.padding(8.dp))
+                                }
+                            }
                         }
                     } else if (showSignup) {
                         SignupScreen(

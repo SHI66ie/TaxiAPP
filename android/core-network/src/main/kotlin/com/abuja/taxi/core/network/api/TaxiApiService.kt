@@ -46,6 +46,12 @@ interface TaxiApiService {
     @GET("payments/wallets")
     suspend fun getDriverWallets(): ApiResponse<List<WalletInfo>>
 
+    @GET("drivers/{id}/earnings")
+    suspend fun getDriverEarnings(@Path("id") id: String): ApiResponse<EarningSummary>
+
+    @POST("payments/payout")
+    suspend fun requestPayout(@Body request: PayoutRequest): ApiResponse<PayoutResponse>
+
     @GET("surge/zones")
     suspend fun getSurgeZones(): ApiResponse<List<SurgeZone>>
 
@@ -163,6 +169,34 @@ data class WalletInfo(
     val driverId: String,
     val balance: Int,
     val tripsCount: Int
+)
+
+@kotlinx.serialization.Serializable
+data class EarningSummary(
+    val todayTotal: Int,
+    val weeklyTotal: Int,
+    val transactions: List<EarningTransaction>
+)
+
+@kotlinx.serialization.Serializable
+data class EarningTransaction(
+    val id: String,
+    val rideId: String,
+    val amount: Int,
+    val timestamp: String
+)
+
+@kotlinx.serialization.Serializable
+data class PayoutRequest(
+    val driverId: String,
+    val amount: Int
+)
+
+@kotlinx.serialization.Serializable
+data class PayoutResponse(
+    val id: String,
+    val status: String,
+    val nibssReference: String
 )
 
 @kotlinx.serialization.Serializable
