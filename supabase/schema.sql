@@ -73,6 +73,25 @@ CREATE INDEX IF NOT EXISTS idx_rides_status ON rides(status);
 CREATE INDEX IF NOT EXISTS idx_rides_driver ON rides(driver_id);
 CREATE INDEX IF NOT EXISTS idx_kyc_status ON kyc_submissions(status);
 
+-- ============================================================
+-- Row Level Security
+-- ============================================================
+-- zones: public read (needed for fare display, non-sensitive)
+ALTER TABLE zones ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Zones are publicly readable"
+  ON zones FOR SELECT
+  USING (true);
+
+-- drivers, rides, kyc_submissions hold PII (phone, NIN, license)
+-- No anon policies → only the backend service-role key can touch them.
+ALTER TABLE drivers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE rides ENABLE ROW LEVEL SECURITY;
+ALTER TABLE kyc_submissions ENABLE ROW LEVEL SECURITY;
+
+-- (Intentionally no CREATE POLICY for anon/authenticated on these tables)
+-- All access goes through the Express API which uses the service-role key.
+
 -- Enable Realtime for admin dashboard live updates
 ALTER PUBLICATION supabase_realtime ADD TABLE drivers;
 ALTER PUBLICATION supabase_realtime ADD TABLE rides;

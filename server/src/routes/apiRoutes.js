@@ -38,6 +38,12 @@ import { registerUser, loginUser } from '../services/authService.js';
 
 const router = express.Router();
 
+// In-App Chat Messaging Store (in-memory) — must be outside any route handler
+let chatMessages = [
+  { id: 'msg_1', rideId: 'ride_101', sender: 'driver', text: 'Hello! I am on my way, 3 mins away.', time: '10:12 AM' },
+  { id: 'msg_2', rideId: 'ride_101', sender: 'passenger', text: 'Great, I am waiting by the gate in Wuse II.', time: '10:13 AM' }
+];
+
 // Auth Endpoints
 router.post('/auth/register', (req, res) => {
   try {
@@ -324,25 +330,26 @@ router.post('/paystack/initialize', (req, res) => {
 
 // Safety SOS Trigger Endpoint
 router.post('/sos/trigger', (req, res) => {
-  const { rideId, passengerName, coords } = req.body;
-  const sosPayload = {
-    rideId,
-    passengerName: passengerName || 'Passenger',
-    coords: coords || { lat: 9.0765, lng: 7.3985 },
-    timestamp: new Date().toISOString(),
-    status: 'ACTIVE_EMERGENCY',
-    message: 'CRITICAL: Passenger activated SOS button in Abuja!'
-  };
+  try {
+    const { rideId, passengerName, coords } = req.body;
+    const sosPayload = {
+      rideId,
+      passengerName: passengerName || 'Passenger',
+      coords: coords || { lat: 9.0765, lng: 7.3985 },
+      timestamp: new Date().toISOString(),
+      status: 'ACTIVE_EMERGENCY',
+      message: 'CRITICAL: Passenger activated SOS button in Abuja!'
+    };
 
-  if (req.io) {
-    req.io.emit('emergency_sos_alert', sosPayload);
+    if (req.io) {
+      req.io.emit('emergency_sos_alert', sosPayload);
+    }
+
+    res.json({ success: true, data: sosPayload });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-
-// In-App Chat Messaging Store (in-memory)
-let chatMessages = [
-  { id: 'msg_1', rideId: 'ride_101', sender: 'driver', text: 'Hello! I am on my way, 3 mins away.', time: '10:12 AM' },
-  { id: 'msg_2', rideId: 'ride_101', sender: 'passenger', text: 'Great, I am waiting by the gate in Wuse II.', time: '10:13 AM' }
-];
+});
 
 // Get Chat Messages for a Ride
 router.get('/messages/:rideId', (req, res) => {
@@ -442,5 +449,3 @@ router.post('/referrals/claim', (req, res) => {
 });
 
 export default router;
-
-
