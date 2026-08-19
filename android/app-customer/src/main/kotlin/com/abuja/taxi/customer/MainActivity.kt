@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import com.abuja.taxi.customer.ui.theme.AbujaEmerald
 import com.abuja.taxi.customer.ui.screens.LoginScreen
 import com.abuja.taxi.customer.ui.screens.MapScreen
+import com.abuja.taxi.customer.ui.screens.RatingScreen
 import com.abuja.taxi.customer.ui.screens.ReferralScreen
 import com.abuja.taxi.customer.ui.screens.SignupScreen
 import com.abuja.taxi.customer.ui.theme.AbujaTaxiTheme
@@ -46,12 +47,19 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val user by authViewModel.currentUser.collectAsState()
+                    val isRatingPending by customerViewModel.isRatingPending.collectAsState()
+                    val bookedRide by customerViewModel.bookedRide.collectAsState()
                     var showSignup by remember { mutableStateOf(false) }
                     var showReferral by remember { mutableStateOf(false) }
                     var chatRideId by remember { mutableStateOf<String?>(null) }
 
                     if (user != null) {
-                        if (showReferral) {
+                        if (isRatingPending && bookedRide != null) {
+                            RatingScreen(
+                                rideId = bookedRide!!.id,
+                                viewModel = customerViewModel
+                            )
+                        } else if (showReferral) {
                             ReferralScreen(
                                 viewModel = authViewModel,
                                 onBack = { showReferral = false }

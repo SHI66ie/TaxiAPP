@@ -19,6 +19,7 @@ import com.abuja.taxi.driver.ui.screens.ChatScreen
 import com.abuja.taxi.driver.ui.screens.DriverMapScreen
 import com.abuja.taxi.driver.ui.screens.KycScreen
 import com.abuja.taxi.driver.ui.screens.LoginScreen
+import com.abuja.taxi.driver.ui.screens.PassengerRatingScreen
 import com.abuja.taxi.driver.ui.screens.SignupScreen
 import com.abuja.taxi.driver.ui.theme.AbujaTaxiTheme
 import androidx.compose.runtime.*
@@ -42,6 +43,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val user by authViewModel.currentUser.collectAsState()
+                    val pendingRatingRideId by driverViewModel.pendingRatingRideId.collectAsState()
                     var showSignup by remember { mutableStateOf(false) }
                     var chatRideId by remember { mutableStateOf<String?>(null) }
 
@@ -51,6 +53,11 @@ class MainActivity : ComponentActivity() {
                                 driverId = user!!.id,
                                 viewModel = kycViewModel,
                                 onLogout = { authViewModel.logout() }
+                            )
+                        } else if (pendingRatingRideId != null) {
+                            PassengerRatingScreen(
+                                rideId = pendingRatingRideId!!,
+                                viewModel = driverViewModel
                             )
                         } else if (chatRideId != null) {
                             ChatScreen(

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.abuja.taxi.core.network.api.LocationUpdate
 import com.abuja.taxi.core.network.api.NetworkModule
+import com.abuja.taxi.core.network.api.RateRequest
 import com.abuja.taxi.core.network.api.StatusUpdate
 import com.abuja.taxi.core.network.api.SurgeZone
 import com.abuja.taxi.core.network.api.WalletInfo
@@ -32,6 +33,12 @@ class DriverViewModel : ViewModel() {
 
     private val _isOnline = MutableStateFlow(false)
     val isOnline: StateFlow<Boolean> = _isOnline
+
+    private val _pendingRatingRideId = MutableStateFlow<String?>(null)
+    val pendingRatingRideId: StateFlow<String?> = _pendingRatingRideId
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
 
     private var pollingJob: Job? = null
 
@@ -103,6 +110,9 @@ class DriverViewModel : ViewModel() {
                     
                     if (status == "COMPLETED" || status == "CANCELLED") {
                         if (idx >= 0) currentRides.removeAt(idx)
+                        if (status == "COMPLETED") {
+                            _pendingRatingRideId.value = rideId
+                        }
                         // Refresh wallet after completion
                         updatedRide.driverId?.let { fetchWalletInfo(it) }
                     } else {
@@ -116,6 +126,25 @@ class DriverViewModel : ViewModel() {
                 }
             } catch (e: Exception) {}
         }
+    }
+
+    fun ratePassenger(rideId: String, rating: Int, compliments: List<String>, comment: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val response = apiService.ratePassenger(rideId, RateRequest(rating, compliments, comment, 0))
+                if (response.success) {
+                    _pendingRatingRideId.value = null
+                }
+            } catch (e: Exception) {
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun skipRating() {
+        _pendingRatingRideId.value = null
     }
 
     fun updateLocation(driverId: String, lat: Double, lng: Double) {

@@ -420,6 +420,30 @@ router.post('/rides/:id/rate', (req, res) => {
   }
 });
 
+// Rate Passenger (Driver-to-Passenger)
+router.post('/rides/:id/rate-passenger', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rating, compliments, comment } = req.body;
+
+    const rateData = {
+      rideId: id,
+      rating: rating || 5,
+      compliments: compliments || [],
+      comment: comment || '',
+      ratedAt: new Date().toISOString()
+    };
+
+    if (req.io) {
+      req.io.emit('passenger_rated', rateData);
+    }
+
+    res.json({ success: true, message: 'Passenger review submitted!', data: rateData });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // In-App Notifications
 router.get('/notifications', (req, res) => {
   const notifications = [

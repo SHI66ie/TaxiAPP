@@ -60,7 +60,21 @@ interface TaxiApiService {
 
     @POST("referrals/claim")
     suspend fun claimReferral(@Body request: ReferralRequest): ApiResponse<ReferralResponse>
+
+    @POST("rides/{id}/rate")
+    suspend fun rateRide(@Path("id") id: String, @Body request: RateRequest): ApiResponse<String>
+
+    @POST("rides/{id}/rate-passenger")
+    suspend fun ratePassenger(@Path("id") id: String, @Body request: RateRequest): ApiResponse<String>
 }
+
+@kotlinx.serialization.Serializable
+data class RateRequest(
+    val rating: Int,
+    val compliments: List<String>,
+    val comment: String,
+    val tipAmount: Int
+)
 
 @kotlinx.serialization.Serializable
 data class ReferralRequest(

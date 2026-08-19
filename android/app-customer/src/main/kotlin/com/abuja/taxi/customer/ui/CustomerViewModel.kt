@@ -8,7 +8,9 @@ import com.abuja.taxi.core.network.api.NetworkModule
 import com.abuja.taxi.core.network.api.PaymentInitRequest
 import com.abuja.taxi.core.network.api.PaymentMethod
 import com.abuja.taxi.core.network.api.PaymentVerifyRequest
+import com.abuja.taxi.core.network.api.RateRequest
 import com.abuja.taxi.core.network.api.RideBookingRequest
+import com.abuja.taxi.core.network.api.SocketManager
 import com.abuja.taxi.core.network.api.SosRequest
 import com.abuja.taxi.core.network.api.SurgeZone
 import com.abuja.taxi.core.network.models.Coordinates
@@ -45,6 +47,9 @@ class CustomerViewModel : ViewModel() {
     private val _surgeZones = MutableStateFlow<List<SurgeZone>>(emptyList())
     val surgeZones: StateFlow<List<SurgeZone>> = _surgeZones
 
+    private val _isRatingPending = MutableStateFlow(false)
+    val isRatingPending: StateFlow<Boolean> = _isRatingPending
+
     private val _sosActive = MutableStateFlow(false)
     val sosActive: StateFlow<Boolean> = _sosActive
 
@@ -55,6 +60,22 @@ class CustomerViewModel : ViewModel() {
         fetchFleetCategories()
         fetchPaymentMethods()
         fetchSurgeZones()
+        observeRideUpdates()
+    }
+
+    private fun observeRideUpdates() {
+        viewModelScope.launch {
+            SocketManager.connect()
+            SocketManager.rideUpdates.collect { json ->
+                val rideId = json.getString("id")
+                val status = json.getString("status")
+                if (_bookedRide.value?.id == rideId) {
+                    if (status == "COMPLETED") {
+                        _isRatingPending.value = true
+                    }
+                }
+            }
+        }
     }
 
     private fun fetchFleetCategories() {
@@ -192,11 +213,27 @@ class CustomerViewModel : ViewModel() {
         }
     }
 
+    fun rateRide(rideId: String, rating: Int, compliments: List<String>, comment: String, tip: Int) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val response = apiService.rateRide(rideId, RateRequest(rating, compliments, comment, tip))
+                if (response.success) {
+                    resetBooking()
+                }
+            } catch (e: Exception) {
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
     fun resetBooking() {
         _bookedRide.value = null
         _estimation.value = null
         _sosActive.value = false
         _paymentUrl.value = null
         _paymentVerified.value = false
+        _isRatingPending.value = false
     }
 }
