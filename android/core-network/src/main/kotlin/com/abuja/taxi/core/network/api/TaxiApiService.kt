@@ -48,7 +48,29 @@ interface TaxiApiService {
 
     @GET("surge/zones")
     suspend fun getSurgeZones(): ApiResponse<List<SurgeZone>>
+
+    @GET("messages/{rideId}")
+    suspend fun getMessages(@Path("rideId") rideId: String): ApiResponse<List<ChatMessage>>
+
+    @POST("messages/send")
+    suspend fun sendMessage(@Body request: ChatMessageRequest): ApiResponse<ChatMessage>
 }
+
+@kotlinx.serialization.Serializable
+data class ChatMessage(
+    val id: String,
+    val rideId: String,
+    val sender: String,
+    val text: String,
+    val time: String
+)
+
+@kotlinx.serialization.Serializable
+data class ChatMessageRequest(
+    val rideId: String,
+    val sender: String,
+    val text: String
+)
 
 @kotlinx.serialization.Serializable
 data class SurgeZone(

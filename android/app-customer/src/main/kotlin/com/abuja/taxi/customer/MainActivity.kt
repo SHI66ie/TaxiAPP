@@ -12,7 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.activity.viewModels
 import com.mapbox.common.MapboxOptions
 import com.abuja.taxi.customer.ui.AuthViewModel
+import com.abuja.taxi.customer.ui.ChatViewModel
 import com.abuja.taxi.customer.ui.CustomerViewModel
+import com.abuja.taxi.customer.ui.screens.ChatScreen
 import com.abuja.taxi.customer.ui.screens.LoginScreen
 import com.abuja.taxi.customer.ui.screens.MapScreen
 import com.abuja.taxi.customer.ui.screens.SignupScreen
@@ -22,6 +24,7 @@ import androidx.compose.runtime.*
 class MainActivity : ComponentActivity() {
     private val authViewModel: AuthViewModel by viewModels()
     private val customerViewModel: CustomerViewModel by viewModels()
+    private val chatViewModel: ChatViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,9 +40,22 @@ class MainActivity : ComponentActivity() {
                 ) {
                     val user by authViewModel.currentUser.collectAsState()
                     var showSignup by remember { mutableStateOf(false) }
+                    var chatRideId by remember { mutableStateOf<String?>(null) }
 
                     if (user != null) {
-                        MapScreen(viewModel = customerViewModel, authViewModel = authViewModel)
+                        if (chatRideId != null) {
+                            ChatScreen(
+                                rideId = chatRideId!!,
+                                viewModel = chatViewModel,
+                                onBack = { chatRideId = null }
+                            )
+                        } else {
+                            MapScreen(
+                                viewModel = customerViewModel,
+                                authViewModel = authViewModel,
+                                onNavigateToChat = { chatRideId = it }
+                            )
+                        }
                     } else if (showSignup) {
                         SignupScreen(
                             viewModel = authViewModel,

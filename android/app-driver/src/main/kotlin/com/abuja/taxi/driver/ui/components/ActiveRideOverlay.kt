@@ -12,6 +12,7 @@ import com.abuja.taxi.core.network.models.Ride
 fun ActiveRideOverlay(
     ride: Ride,
     onStatusUpdate: (String) -> Unit,
+    onChat: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -22,8 +23,10 @@ fun ActiveRideOverlay(
         Column(modifier = Modifier.padding(16.dp)) {
             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                 Text("Ongoing Trip", style = MaterialTheme.typography.titleMedium)
-                Badge(containerColor = if (ride.status == "IN_PROGRESS") Color.Green else Color.Blue) {
-                    Text(ride.status)
+                IconButton(onClick = onChat) {
+                    Badge(containerColor = MaterialTheme.colorScheme.primary) {
+                        Text("Chat", modifier = Modifier.padding(4.dp))
+                    }
                 }
             }
             

@@ -32,7 +32,11 @@ import kotlinx.coroutines.delay
 
 @SuppressLint("MissingPermission")
 @Composable
-fun DriverMapScreen(viewModel: DriverViewModel, driverId: String) {
+fun DriverMapScreen(
+    viewModel: DriverViewModel,
+    driverId: String,
+    onNavigateToChat: (String) -> Unit
+) {
     val context = LocalContext.current
     val updateStatus by viewModel.updateStatus.collectAsState()
     val walletInfo by viewModel.walletInfo.collectAsState()
@@ -180,6 +184,7 @@ fun DriverMapScreen(viewModel: DriverViewModel, driverId: String) {
                 ActiveRideOverlay(
                     ride = ride,
                     onStatusUpdate = { status -> viewModel.updateRideStatus(ride.id, status) },
+                    onChat = { onNavigateToChat(ride.id) },
                     modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 120.dp)
                 )
             }

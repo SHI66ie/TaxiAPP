@@ -47,7 +47,11 @@ val ABUJA_LANDMARKS = listOf(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MapScreen(viewModel: CustomerViewModel, authViewModel: AuthViewModel) {
+fun MapScreen(
+    viewModel: CustomerViewModel,
+    authViewModel: AuthViewModel,
+    onNavigateToChat: (String) -> Unit
+) {
     val context = LocalContext.current
     val drivers by viewModel.drivers.collectAsState()
     val surgeZones by viewModel.surgeZones.collectAsState()
@@ -191,7 +195,13 @@ fun MapScreen(viewModel: CustomerViewModel, authViewModel: AuthViewModel) {
                     .padding(16.dp)
             ) {
                 if (bookedRide != null) {
-                    RideStatusCard(bookedRide!!, sosActive, paymentVerified, onDone = { viewModel.resetBooking() })
+                    RideStatusCard(
+                        ride = bookedRide!!,
+                        sosActive = sosActive,
+                        paymentVerified = paymentVerified,
+                        onChat = { onNavigateToChat(bookedRide!!.id) },
+                        onDone = { viewModel.resetBooking() }
+                    )
                 } else if (selectedDestination == null) {
                     DestinationSearchCard(onDestinationSelected = {
                         selectedDestination = it
@@ -385,7 +395,13 @@ fun BookingCard(
 }
 
 @Composable
-fun RideStatusCard(ride: com.abuja.taxi.core.network.models.Ride, sosActive: Boolean, paymentVerified: Boolean, onDone: () -> Unit) {
+fun RideStatusCard(
+    ride: com.abuja.taxi.core.network.models.Ride,
+    sosActive: Boolean,
+    paymentVerified: Boolean,
+    onChat: () -> Unit,
+    onDone: () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -408,12 +424,20 @@ fun RideStatusCard(ride: com.abuja.taxi.core.network.models.Ride, sosActive: Boo
             }
             Text("Driver: ${ride.driverName ?: "Searching..."}", style = MaterialTheme.typography.bodyMedium)
             Text("Vehicle: ${ride.driverVehicle ?: "---"}", style = MaterialTheme.typography.bodySmall)
+            
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = onChat, modifier = Modifier.weight(1f)) {
+                    Text("Chat with Driver")
+                }
+                OutlinedButton(onClick = onDone, modifier = Modifier.weight(1f)) {
+                    Text("Dismiss")
+                }
+            }
+            
             Spacer(modifier = Modifier.height(8.dp))
             Text("QR Code: ${ride.qrCode}", style = MaterialTheme.typography.titleLarge)
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = onDone) {
-                Text("Dismiss")
-            }
         }
     }
 }
