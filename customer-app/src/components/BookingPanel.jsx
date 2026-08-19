@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { MapPin, Search, Navigation, Compass, ChevronRight } from 'lucide-react';
+import { MapPin, Search, Navigation, Compass, ChevronRight, Sparkles } from 'lucide-react';
 
 export const ABUJA_PRESET_LOCATIONS = [
-  { name: 'Central Business District (CBD)', coords: { lat: 9.0500, lng: 7.4800 }, desc: 'FCT Commercial & Ministerial Hub' },
-  { name: 'Maitama District', coords: { lat: 9.0800, lng: 7.4900 }, desc: 'Diplomatic Zone & High-end Area' },
-  { name: 'Wuse II', coords: { lat: 9.05785, lng: 7.49508 }, desc: 'Aminu Kano & Banex Corridor' },
-  { name: 'Nnamdi Azikiwe Airport (Express)', coords: { lat: 9.0068, lng: 7.2631 }, desc: 'Airport Road Express corridor' },
-  { name: 'Gwarinpa Estate', coords: { lat: 9.07648, lng: 7.39857 }, desc: '3rd Avenue & 1st Avenue Axis' },
-  { name: 'Berger Roundabout / Utako', coords: { lat: 9.0650, lng: 7.4550 }, desc: 'Central Transit Interchange' },
-  { name: 'Kubwa Modern Market', coords: { lat: 9.1500, lng: 7.3300 }, desc: 'Kubwa Expressway Zone' }
+  { name: 'Central Business District (CBD)', coords: { lat: 9.0500, lng: 7.4800 }, desc: 'FCT Commercial & Ministerial Hub', tag: 'Fast Pickup' },
+  { name: 'Maitama District', coords: { lat: 9.0800, lng: 7.4900 }, desc: 'Diplomatic Zone & High-end Area', tag: '3 mins' },
+  { name: 'Wuse II (Aminu Kano)', coords: { lat: 9.05785, lng: 7.49508 }, desc: 'Banex & Entertainment Corridor', tag: 'Popular' },
+  { name: 'Nnamdi Azikiwe Airport', coords: { lat: 9.0068, lng: 7.2631 }, desc: 'Airport Road Express Corridor', tag: 'Express' },
+  { name: 'Gwarinpa Estate', coords: { lat: 9.07648, lng: 7.39857 }, desc: '1st & 3rd Avenue Axis', tag: '5 mins' },
+  { name: 'Berger Roundabout / Utako', coords: { lat: 9.0650, lng: 7.4550 }, desc: 'Central Transit Interchange', tag: 'Interchange' }
 ];
 
 const BookingPanel = ({ onSearch }) => {
@@ -50,7 +49,7 @@ const BookingPanel = ({ onSearch }) => {
       className="glass-panel animate-slide-up" 
       style={{ 
         position: 'absolute', 
-        bottom: 'calc(var(--nav-height) + 16px)', 
+        bottom: '86px', 
         left: '16px', 
         right: '16px', 
         padding: '20px',
@@ -59,84 +58,129 @@ const BookingPanel = ({ onSearch }) => {
         overflowY: 'auto'
       }}
     >
+      <div className="drawer-handle" />
+
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-        <h2 className="text-h2" style={{ margin: 0, fontSize: '18px' }}>Where to, Abuja?</h2>
-        <span style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.15)', color: 'var(--accent-primary)', fontWeight: '600' }}>
-          🟢 Drivers Active
+        <div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500' }}>Good day, Amina 👋</div>
+          <h2 className="text-h2" style={{ margin: '2px 0 0', fontSize: '20px', color: '#FFFFFF' }}>Where are you heading?</h2>
+        </div>
+        <span className="badge-pill badge-green">
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981', display: 'inline-block' }}></span>
+          18 Aber Taxis
         </span>
       </div>
       
       <form onSubmit={handleSubmit}>
-        {/* Pickup point */}
+        {/* Connected Route Input Box */}
         <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          background: 'rgba(255,255,255,0.03)', 
-          padding: '10px 14px', 
-          borderRadius: 'var(--radius-md)', 
-          marginBottom: '10px',
-          border: '1px solid rgba(255,255,255,0.08)'
-        }}>
-          <Navigation size={16} color="var(--accent-primary)" style={{ marginRight: '10px', flexShrink: 0 }} />
-          <div style={{ flex: 1 }}>
-            <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pickup Location</span>
-            <input 
-              type="text" 
-              value={pickup.name}
-              onChange={(e) => setPickup(prev => ({ ...prev, name: e.target.value }))}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                color: 'var(--text-primary)',
-                fontSize: '14px',
-                width: '100%',
-                fontWeight: '500'
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Destination point */}
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          background: 'var(--bg-surface-elevated)', 
-          padding: '12px 14px', 
-          borderRadius: 'var(--radius-md)', 
+          background: 'rgba(14, 19, 31, 0.65)', 
+          borderRadius: '16px', 
+          padding: '14px', 
+          border: '1px solid rgba(255, 255, 255, 0.08)',
           marginBottom: '16px',
-          border: '1px solid rgba(16, 185, 129, 0.3)'
+          position: 'relative'
         }}>
-          <Search size={18} color="var(--accent-primary)" style={{ marginRight: '10px', flexShrink: 0 }} />
-          <div style={{ flex: 1 }}>
-            <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Destination</span>
-            <input 
-              type="text" 
-              placeholder="Search destination in Abuja..." 
-              value={destination}
-              onChange={(e) => {
-                setDestination(e.target.value);
-                setSelectedDestCoords(null);
-              }}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                color: 'var(--text-primary)',
-                fontSize: '15px',
-                width: '100%',
-                fontWeight: '600'
-              }}
-            />
+          {/* Visual Route Connector */}
+          <div style={{
+            position: 'absolute',
+            left: '27px',
+            top: '32px',
+            bottom: '32px',
+            width: '2px',
+            background: 'dashed 1px rgba(255, 212, 40, 0.5)',
+            borderLeft: '2px dashed rgba(255, 212, 40, 0.4)',
+            zIndex: 1
+          }}></div>
+
+          {/* Pickup */}
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '12px', position: 'relative', zIndex: 2 }}>
+            <div style={{ 
+              width: '24px', 
+              height: '24px', 
+              borderRadius: '50%', 
+              background: 'var(--aber-yellow)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              marginRight: '12px',
+              flexShrink: 0
+            }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#0E131F' }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.6px', fontWeight: '700' }}>
+                Pickup Location
+              </span>
+              <input 
+                type="text" 
+                value={pickup.name}
+                onChange={(e) => setPickup(prev => ({ ...prev, name: e.target.value }))}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  color: 'var(--text-primary)',
+                  fontSize: '14px',
+                  width: '100%',
+                  fontWeight: '600'
+                }}
+              />
+            </div>
+          </div>
+
+          <div style={{ height: '1px', background: 'rgba(255, 255, 255, 0.06)', margin: '8px 0 8px 36px' }} />
+
+          {/* Destination */}
+          <div style={{ display: 'flex', alignItems: 'center', position: 'relative', zIndex: 2 }}>
+            <div style={{ 
+              width: '24px', 
+              height: '24px', 
+              borderRadius: '6px', 
+              background: '#EF4444', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              marginRight: '12px',
+              flexShrink: 0
+            }}>
+              <div style={{ width: '8px', height: '8px', background: '#FFFFFF', borderRadius: '2px' }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.6px', fontWeight: '700' }}>
+                Destination (Abuja)
+              </span>
+              <input 
+                type="text" 
+                placeholder="Search destination in Abuja..." 
+                value={destination}
+                onChange={(e) => {
+                  setDestination(e.target.value);
+                  setSelectedDestCoords(null);
+                }}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  color: 'var(--text-primary)',
+                  fontSize: '15px',
+                  width: '100%',
+                  fontWeight: '700'
+                }}
+              />
+            </div>
           </div>
         </div>
 
         {/* Quick Abuja Landmarks Presets */}
         <div style={{ marginBottom: '16px' }}>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Compass size={13} /> Popular Abuja Corridors
+          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}>
+              <Compass size={14} color="var(--aber-yellow)" /> Quick Abuja Corridors
+            </span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Tap to set</span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '150px', overflowY: 'auto' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '150px', overflowY: 'auto' }}>
             {ABUJA_PRESET_LOCATIONS.slice(0, 4).map((preset, idx) => (
               <div 
                 key={idx}
@@ -145,29 +189,49 @@ const BookingPanel = ({ onSearch }) => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '8px 10px',
-                  borderRadius: '8px',
-                  background: 'rgba(255,255,255,0.02)',
-                  border: '1px solid rgba(255,255,255,0.05)',
+                  padding: '10px 12px',
+                  borderRadius: '12px',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(255, 255, 255, 0.06)',
                   cursor: 'pointer',
-                  transition: 'background 0.2s'
+                  transition: 'all 0.2s ease'
                 }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 212, 40, 0.08)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <MapPin size={14} color="var(--accent-primary)" />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ 
+                    width: '30px', 
+                    height: '30px', 
+                    borderRadius: '8px', 
+                    background: 'var(--bg-surface-elevated)', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    color: 'var(--aber-yellow)'
+                  }}>
+                    <MapPin size={16} />
+                  </div>
                   <div>
-                    <div style={{ fontSize: '13px', fontWeight: '500' }}>{preset.name}</div>
-                    <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{preset.desc}</div>
+                    <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>{preset.name}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{preset.desc}</div>
                   </div>
                 </div>
-                <ChevronRight size={14} color="var(--text-muted)" />
+                <span className="badge-pill badge-yellow" style={{ fontSize: '10px' }}>
+                  {preset.tag}
+                </span>
               </div>
             ))}
           </div>
         </div>
 
-        <button type="submit" className="btn-primary" disabled={!destination.trim()} style={{ width: '100%', padding: '12px' }}>
-          Find Rides & Compare Prices
+        <button 
+          type="submit" 
+          className="btn-primary" 
+          disabled={!destination.trim()} 
+          style={{ width: '100%', padding: '14px', fontSize: '15px' }}
+        >
+          <Search size={18} /> Find Aber Rides & Compare
         </button>
       </form>
     </div>
@@ -175,3 +239,4 @@ const BookingPanel = ({ onSearch }) => {
 };
 
 export default BookingPanel;
+

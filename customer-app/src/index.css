@@ -1,39 +1,50 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Dark Mode Base Tokens */
-  --bg-base: #0f172a; /* Slate 900 */
-  --bg-surface: #1e293b; /* Slate 800 */
-  --bg-surface-elevated: #334155; /* Slate 700 */
-  
-  /* Text Tokens */
-  --text-primary: #f8fafc; /* Slate 50 */
-  --text-secondary: #94a3b8; /* Slate 400 */
-  --text-muted: #64748b; /* Slate 500 */
-  
-  /* Accent Tokens (Abuja Express Vibrant Green/Teal) */
-  --accent-primary: #10b981; /* Emerald 500 */
-  --accent-hover: #059669; /* Emerald 600 */
-  --accent-light: rgba(16, 185, 129, 0.15);
-  
-  /* Semantic Tokens */
-  --danger: #ef4444;
-  --warning: #f59e0b;
-  --success: #10b981;
-  --info: #3b82f6;
+  /* Aber Taxi Color Palette */
+  --aber-yellow: #FFD428;
+  --aber-yellow-hover: #F2C41D;
+  --aber-yellow-light: rgba(255, 212, 40, 0.15);
+  --aber-yellow-glow: rgba(255, 212, 40, 0.35);
 
-  /* Layout & Spacing */
-  --nav-height: 70px;
+  --aber-orange: #FF8900;
+  --aber-orange-light: rgba(255, 137, 0, 0.15);
+
+  /* Surfaces & Backgrounds (Aber Sleek Dark Palette) */
+  --bg-base: #0E131F;
+  --bg-surface: #171E2E;
+  --bg-surface-elevated: #222B3D;
+  --bg-surface-highlight: #2C374D;
+  --bg-card: rgba(23, 30, 46, 0.85);
+
+  /* Text Tokens */
+  --text-primary: #FFFFFF;
+  --text-secondary: #9DA8BE;
+  --text-muted: #64748B;
+  --text-dark: #0E131F;
+
+  /* Accent & Status Tokens */
+  --accent-primary: #FFD428;
+  --accent-secondary: #FF8900;
+  --success: #10B981;
+  --success-light: rgba(16, 185, 129, 0.15);
+  --danger: #EF4444;
+  --danger-light: rgba(239, 68, 68, 0.15);
+  --warning: #F59E0B;
+  --info: #3B82F6;
+
+  /* Layout & Sizing */
+  --nav-height: 72px;
   --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
   --radius-pill: 9999px;
-  
+
   /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
-  --shadow-glow: 0 0 15px rgba(16, 185, 129, 0.3);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.45);
+  --shadow-yellow: 0 6px 20px rgba(255, 212, 40, 0.35);
 }
 
 * {
@@ -43,64 +54,82 @@
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background-color: var(--bg-base);
   color: var(--text-primary);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Mobile-first constraints */
   max-width: 480px;
   margin: 0 auto;
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
-  box-shadow: 0 0 20px rgba(0,0,0,0.5); /* Helps it look like a phone screen on desktop */
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.7);
 }
 
-/* Glassmorphism Utilities */
+/* Aber Glassmorphism Panels */
 .glass-panel {
-  background: rgba(30, 41, 59, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
 }
 
-/* Common Components */
+.glass-panel-elevated {
+  background: rgba(34, 43, 61, 0.9);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Aber Buttons */
 .btn-primary {
-  background-color: var(--accent-primary);
-  color: #fff;
+  background: var(--aber-yellow);
+  color: var(--text-dark);
   border: none;
   border-radius: var(--radius-md);
-  padding: 12px 24px;
-  font-size: 16px;
-  font-weight: 600;
+  padding: 14px 20px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   width: 100%;
+  box-shadow: var(--shadow-yellow);
 }
 
-.btn-primary:hover {
-  background-color: var(--accent-hover);
-  box-shadow: var(--shadow-glow);
+.btn-primary:hover:not(:disabled) {
+  background: var(--aber-yellow-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(255, 212, 40, 0.45);
 }
 
-.btn-primary:active {
+.btn-primary:active:not(:disabled) {
   transform: scale(0.98);
 }
 
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
 .btn-secondary {
-  background-color: var(--bg-surface-elevated);
+  background: var(--bg-surface-elevated);
   color: var(--text-primary);
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-md);
-  padding: 12px 24px;
-  font-size: 16px;
+  padding: 12px 18px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -108,23 +137,88 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  width: 100%;
 }
 
-.btn-secondary:hover {
-  background-color: #475569;
+.btn-secondary:hover:not(:disabled) {
+  background: var(--bg-surface-highlight);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.btn-secondary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn-accent-orange {
+  background: linear-gradient(135deg, var(--aber-orange), #E67A00);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 13px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(255, 137, 0, 0.35);
+  transition: all 0.2s ease;
+}
+
+.btn-accent-orange:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
 }
 
 /* Typography utilities */
-.text-h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
-.text-h2 { font-size: 22px; font-weight: 600; }
-.text-h3 { font-size: 18px; font-weight: 600; }
-.text-body { font-size: 15px; color: var(--text-secondary); }
-.text-sm { font-size: 13px; color: var(--text-muted); }
+.text-h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+.text-h2 { font-size: 19px; font-weight: 700; letter-spacing: -0.3px; }
+.text-h3 { font-size: 16px; font-weight: 700; }
+.text-body { font-size: 14px; color: var(--text-secondary); }
+.text-sm { font-size: 12px; color: var(--text-muted); }
 
-/* Animation Utilities */
+/* Badges & Pills */
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.badge-yellow {
+  background: var(--aber-yellow-light);
+  color: var(--aber-yellow);
+  border: 1px solid rgba(255, 212, 40, 0.3);
+}
+
+.badge-green {
+  background: var(--success-light);
+  color: var(--success);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-orange {
+  background: var(--aber-orange-light);
+  color: var(--aber-orange);
+  border: 1px solid rgba(255, 137, 0, 0.3);
+}
+
+/* Aber Drawer Handle */
+.drawer-handle {
+  width: 40px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  margin: 0 auto 14px;
+}
+
+/* Animations */
 @keyframes slideUp {
-  from { transform: translateY(100%); opacity: 0; }
+  from { transform: translateY(30px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
 
@@ -132,17 +226,25 @@ body {
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-@keyframes pulse-glow {
-  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+@keyframes pulseYellow {
+  0% { box-shadow: 0 0 0 0 rgba(255, 212, 40, 0.5); }
+  70% { box-shadow: 0 0 0 12px rgba(255, 212, 40, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 212, 40, 0); }
 }
 
-.animate-pulse-glow {
-  animation: pulse-glow 2s infinite;
+.pulse-yellow {
+  animation: pulseYellow 2s infinite;
 }
 
-/* Hide scrollbar for clean mobile look */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Hide scrollbar */
 ::-webkit-scrollbar {
   display: none;
 }

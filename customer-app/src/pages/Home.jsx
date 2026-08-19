@@ -10,9 +10,10 @@ const Home = () => {
   const [tripSearch, setTripSearch] = useState(null);
   const [selectedFleet, setSelectedFleet] = useState({
     id: 'standard',
-    name: 'Standard Taxi',
+    name: 'Aber Standard',
     numericPrice: 2500,
-    price: '₦2,500'
+    price: '₦2,500',
+    paymentMethod: 'Paystack'
   });
   const [activeRide, setActiveRide] = useState(null);
   const [bookingLoading, setBookingLoading] = useState(false);
@@ -37,7 +38,7 @@ const Home = () => {
         isCarpool: selectedFleet.id === 'carpool',
         fare: selectedFleet.numericPrice || 2500,
         originalFare: selectedFleet.id === 'carpool' ? Math.round((selectedFleet.numericPrice || 2500) / 0.6) : selectedFleet.numericPrice,
-        paymentMethod: 'Paystack'
+        paymentMethod: selectedFleet.paymentMethod || 'Paystack'
       };
 
       const res = await fetch('/api/rides/book', {
@@ -86,19 +87,26 @@ const Home = () => {
           className="glass-panel animate-slide-up"
           style={{ 
             position: 'absolute', 
-            bottom: 'calc(var(--nav-height) + 16px)', 
+            bottom: '86px', 
             left: '16px', 
             right: '16px', 
             padding: '20px',
             zIndex: 10,
-            maxHeight: '75vh',
+            maxHeight: '78vh',
             overflowY: 'auto'
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <h2 className="text-h2" style={{ margin: 0, fontSize: '18px' }}>Select Ride Type</h2>
-            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-              {tripSearch?.destination?.name?.substring(0, 20)}...
+          <div className="drawer-handle" />
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <div>
+              <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.5px' }}>
+                Aber Ride Selection
+              </span>
+              <h2 className="text-h2" style={{ margin: 0, fontSize: '18px', color: '#FFFFFF' }}>Select Vehicle Class</h2>
+            </div>
+            <span className="badge-pill badge-yellow" style={{ fontSize: '11px' }}>
+              {tripSearch?.destination?.name?.substring(0, 18)}...
             </span>
           </div>
 
@@ -106,7 +114,9 @@ const Home = () => {
             pickup={tripSearch?.pickup}
             destination={tripSearch?.destination}
             initialSelected={selectedFleet.id}
-            onSelect={(cat) => setSelectedFleet(cat)} 
+            selectedPayment={selectedFleet.paymentMethod || 'Paystack'}
+            onSelect={(cat) => setSelectedFleet(prev => ({ ...prev, ...cat }))} 
+            onPaymentChange={(pm) => setSelectedFleet(prev => ({ ...prev, paymentMethod: pm }))}
           />
 
           <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
@@ -118,19 +128,19 @@ const Home = () => {
               Back
             </button>
             <button 
-              className="btn-secondary" 
+              className="btn-accent-orange" 
               onClick={() => setBookingState('bidding')}
-              style={{ flex: 1.2, padding: '12px', borderColor: 'var(--accent-gold)', color: 'var(--accent-gold)' }}
+              style={{ flex: 1.2, padding: '12px' }}
             >
-              Negotiate Fare
+              Negotiate
             </button>
             <button 
               className="btn-primary" 
               onClick={handleDirectBook}
               disabled={bookingLoading}
-              style={{ flex: 1.5, padding: '12px' }}
+              style={{ flex: 1.8, padding: '12px' }}
             >
-              {bookingLoading ? 'Dispatching...' : `Book ${selectedFleet.name.split(' ')[0]}`}
+              {bookingLoading ? 'Dispatching...' : `Confirm ${selectedFleet.name.replace('Aber ', '')}`}
             </button>
           </div>
         </div>
@@ -141,16 +151,16 @@ const Home = () => {
           className="glass-panel animate-slide-up"
           style={{ 
             position: 'absolute', 
-            bottom: 'calc(var(--nav-height) + 16px)', 
+            bottom: '86px', 
             left: '16px', 
             right: '16px', 
             padding: '20px',
             zIndex: 10,
-            maxHeight: '75vh',
+            maxHeight: '78vh',
             overflowY: 'auto'
           }}
         >
-          <h2 className="text-h2" style={{ marginBottom: '14px', fontSize: '18px' }}>P2P Fare Bidding</h2>
+          <div className="drawer-handle" />
           <BiddingInterface 
             basePrice={selectedFleet.numericPrice || 2500} 
             pickup={tripSearch?.pickup}
@@ -173,3 +183,4 @@ const Home = () => {
 };
 
 export default Home;
+

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Phone, MessageSquare, User, Star, AlertTriangle, CheckCircle, Navigation, X, ShieldAlert, KeyRound } from 'lucide-react';
+import { Shield, Phone, MessageSquare, User, Star, AlertTriangle, CheckCircle2, Navigation, X, ShieldAlert, KeyRound, Clock, ArrowRight } from 'lucide-react';
 import { socket } from '../App';
 
 const ActiveRide = ({ ride, onCancel, onCompleted }) => {
@@ -75,56 +75,50 @@ const ActiveRide = ({ ride, onCancel, onCompleted }) => {
   const getStatusBadge = () => {
     switch (status) {
       case 'IN_PROGRESS':
-        return { text: 'Trip In Progress', color: 'var(--accent-primary)', bg: 'rgba(16, 185, 129, 0.15)' };
+        return { text: 'Trip In Progress', badgeClass: 'badge-green', label: 'Heading to destination' };
       case 'ARRIVING':
-        return { text: 'Driver Arriving', color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.15)' };
+        return { text: 'Driver Arrived', badgeClass: 'badge-yellow', label: 'Driver is at pickup point' };
       case 'COMPLETED':
-        return { text: 'Trip Completed', color: 'var(--accent-primary)', bg: 'rgba(16, 185, 129, 0.2)' };
+        return { text: 'Trip Completed', badgeClass: 'badge-green', label: 'You have arrived safely' };
       default:
-        return { text: 'Driver En Route', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.15)' };
+        return { text: 'Driver En Route', badgeClass: 'badge-yellow', label: 'Driver is on the way (3 mins)' };
     }
   };
 
-  const statusBadge = getStatusBadge();
+  const statusInfo = getStatusBadge();
 
   return (
     <div 
       className="glass-panel animate-slide-up"
       style={{ 
         position: 'absolute', 
-        bottom: 'calc(var(--nav-height) + 16px)', 
+        bottom: '86px', 
         left: '16px', 
         right: '16px', 
         padding: '20px',
         zIndex: 10,
-        maxHeight: '75vh',
+        maxHeight: '78vh',
         overflowY: 'auto'
       }}
     >
-      {/* Top Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+      <div className="drawer-handle" />
+
+      {/* Top Header Status & Fare */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
         <div>
-          <span style={{ 
-            fontSize: '11px', 
-            padding: '3px 8px', 
-            borderRadius: '8px', 
-            background: statusBadge.bg, 
-            color: statusBadge.color,
-            fontWeight: '700',
-            textTransform: 'uppercase'
-          }}>
-            {statusBadge.text}
+          <span className={`badge-pill ${statusInfo.badgeClass}`}>
+            {statusInfo.text}
           </span>
-          <h2 className="text-h2" style={{ marginTop: '6px', fontSize: '18px' }}>
-            {status === 'IN_PROGRESS' ? 'Heading to destination' : 'Driver is on the way'}
+          <h2 className="text-h2" style={{ marginTop: '6px', fontSize: '18px', color: '#FFFFFF' }}>
+            {statusInfo.label}
           </h2>
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: '18px', fontWeight: '800', color: 'var(--accent-primary)' }}>
+          <div style={{ fontSize: '20px', fontWeight: '800', color: 'var(--aber-yellow)' }}>
             ₦{fare.toLocaleString()}
           </div>
           <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-            {currentRide?.paymentMethod || 'Paystack / Cash'}
+            {currentRide?.paymentMethod || 'Paystack Card'}
           </span>
         </div>
       </div>
@@ -134,68 +128,86 @@ const ActiveRide = ({ ride, onCancel, onCompleted }) => {
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'space-between',
-        padding: '10px 14px', 
-        background: 'rgba(245, 158, 11, 0.08)', 
-        border: '1px dashed rgba(245, 158, 11, 0.4)',
-        borderRadius: '10px',
+        padding: '12px 14px', 
+        background: 'rgba(255, 212, 40, 0.08)', 
+        border: '1px dashed rgba(255, 212, 40, 0.4)',
+        borderRadius: '14px',
         marginBottom: '16px'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <KeyRound size={18} color="var(--accent-gold)" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ 
+            width: '32px', 
+            height: '32px', 
+            borderRadius: '8px', 
+            background: 'var(--aber-yellow)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            color: '#0E131F'
+          }}>
+            <KeyRound size={18} />
+          </div>
           <div>
-            <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Trip Verification PIN</div>
-            <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Verify driver before entering</div>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700' }}>Trip PIN</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Provide to driver on pickup</div>
           </div>
         </div>
-        <div style={{ fontSize: '18px', fontWeight: '800', letterSpacing: '3px', color: 'var(--accent-gold)' }}>
+        <div style={{ fontSize: '20px', fontWeight: '800', letterSpacing: '4px', color: 'var(--aber-yellow)' }}>
           {securityPin}
         </div>
       </div>
 
-      {/* Driver & Vehicle Details */}
+      {/* Driver & Vehicle Details Card */}
       <div style={{ 
         display: 'flex', 
         alignItems: 'center', 
         gap: '14px', 
-        padding: '14px 0', 
-        borderTop: '1px solid rgba(255,255,255,0.08)', 
-        borderBottom: '1px solid rgba(255,255,255,0.08)', 
+        padding: '14px', 
+        background: 'rgba(14, 19, 31, 0.65)',
+        borderRadius: '16px',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
         marginBottom: '16px' 
       }}>
         <div style={{ 
-          width: '50px', 
-          height: '50px', 
+          width: '52px', 
+          height: '52px', 
           borderRadius: '50%', 
           backgroundColor: 'var(--bg-surface-elevated)', 
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'center',
-          border: '2px solid var(--accent-primary)'
+          border: '2px solid var(--aber-yellow)',
+          color: 'var(--aber-yellow)',
+          flexShrink: 0
         }}>
-          <User size={26} color="var(--accent-primary)" />
+          <User size={28} />
         </div>
         <div style={{ flex: 1 }}>
-          <h3 className="text-h3" style={{ fontSize: '15px' }}>{driverName}</h3>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '2px' }}>{vehicle}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Star size={13} color="#f59e0b" fill="#f59e0b" />
-            <span className="text-sm" style={{ fontWeight: '700', fontSize: '12px' }}>4.9</span>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>• 400+ trips</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <h3 className="text-h3" style={{ fontSize: '15px', color: '#FFFFFF', margin: 0 }}>{driverName}</h3>
+            <span className="badge-pill badge-green" style={{ fontSize: '9px', padding: '1px 5px' }}>✓ Verified</span>
+          </div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>{vehicle}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+            <Star size={13} color="#FFD428" fill="#FFD428" />
+            <span style={{ fontWeight: '700', fontSize: '12px', color: '#FFFFFF' }}>4.9</span>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>• 450+ trips</span>
           </div>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <a 
             href="tel:+2348031112233" 
             style={{ 
-              width: '40px', 
-              height: '40px', 
+              width: '42px', 
+              height: '42px', 
               borderRadius: '50%', 
-              background: 'rgba(16, 185, 129, 0.15)', 
-              color: '#10b981', 
+              background: 'var(--aber-yellow)', 
+              color: '#0E131F', 
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center',
-              textDecoration: 'none'
+              textDecoration: 'none',
+              boxShadow: '0 4px 12px rgba(255, 212, 40, 0.4)'
             }}
           >
             <Phone size={18} />
@@ -208,7 +220,7 @@ const ActiveRide = ({ ride, onCancel, onCompleted }) => {
         {status !== 'COMPLETED' ? (
           <button 
             className="btn-secondary" 
-            style={{ flex: 1, padding: '10px', fontSize: '13px' }} 
+            style={{ flex: 1, padding: '12px', fontSize: '13px' }} 
             onClick={handleCancelRide}
             disabled={cancelling}
           >
@@ -217,7 +229,7 @@ const ActiveRide = ({ ride, onCancel, onCompleted }) => {
         ) : (
           <button 
             className="btn-primary" 
-            style={{ flex: 1, padding: '10px', fontSize: '13px' }} 
+            style={{ flex: 1, padding: '12px', fontSize: '13px' }} 
             onClick={onCancel}
           >
             Book Another Ride
@@ -227,19 +239,20 @@ const ActiveRide = ({ ride, onCancel, onCompleted }) => {
           className="btn-secondary" 
           style={{ 
             flex: 1, 
-            padding: '10px', 
+            padding: '12px', 
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'center',
             gap: '6px', 
-            color: '#ef4444',
+            color: '#EF4444',
             border: '1px solid rgba(239, 68, 68, 0.3)',
-            background: 'rgba(239, 68, 68, 0.08)',
-            fontSize: '13px'
+            background: 'rgba(239, 68, 68, 0.1)',
+            fontSize: '13px',
+            fontWeight: '700'
           }}
           onClick={() => setShowSosModal(true)}
         >
-          <ShieldAlert size={16} /> Safety / SOS
+          <ShieldAlert size={16} /> Abuja SOS
         </button>
       </div>
 
@@ -251,42 +264,43 @@ const ActiveRide = ({ ride, onCancel, onCompleted }) => {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(0,0,0,0.85)',
+          background: 'rgba(0, 0, 0, 0.88)',
           zIndex: 9999,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           padding: '20px'
         }}>
-          <div className="glass-panel" style={{ width: '100%', maxWidth: '360px', padding: '24px', textAlign: 'center', border: '1px solid #ef4444' }}>
+          <div className="glass-panel-elevated" style={{ width: '100%', maxWidth: '360px', padding: '24px', textAlign: 'center', border: '1px solid #EF4444' }}>
             <div style={{ 
-              width: '56px', 
-              height: '56px', 
+              width: '58px', 
+              height: '58px', 
               borderRadius: '50%', 
               background: 'rgba(239, 68, 68, 0.2)', 
-              color: '#ef4444', 
+              color: '#EF4444', 
               display: 'flex', 
               alignItems: 'center', 
-              justifyContent: 'center',
-              margin: '0 auto 16px'
+              justifyContent: 'center', 
+              margin: '0 auto 16px',
+              border: '2px solid #EF4444'
             }}>
               <ShieldAlert size={32} />
             </div>
 
-            <h2 className="text-h2" style={{ color: '#ef4444', marginBottom: '8px' }}>
+            <h2 className="text-h2" style={{ color: '#EF4444', marginBottom: '8px' }}>
               Abuja Emergency SOS
             </h2>
 
             {sosSent ? (
               <div>
-                <p className="text-body" style={{ color: '#10b981', fontWeight: '600', marginBottom: '16px' }}>
-                  ✓ Emergency GPS dispatched to Abuja Security Control Center!
+                <p className="text-body" style={{ color: '#10B981', fontWeight: '600', marginBottom: '16px' }}>
+                  ✓ Emergency GPS dispatched to Abuja Security Command Center!
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
-                  <a href="tel:112" className="btn-primary" style={{ background: '#ef4444', textDecoration: 'none', padding: '10px' }}>
+                  <a href="tel:112" className="btn-primary" style={{ background: '#EF4444', color: '#FFFFFF', textDecoration: 'none', padding: '12px' }}>
                     Call FCT Police Hotline (112)
                   </a>
-                  <a href="tel:08031230000" className="btn-secondary" style={{ textDecoration: 'none', padding: '10px' }}>
+                  <a href="tel:08031230000" className="btn-secondary" style={{ textDecoration: 'none', padding: '12px' }}>
                     Call FCT Quick Response Squad
                   </a>
                 </div>
@@ -297,13 +311,13 @@ const ActiveRide = ({ ride, onCancel, onCompleted }) => {
             ) : (
               <div>
                 <p className="text-body" style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '20px' }}>
-                  This will broadcast your live coordinates and ride details directly to our Abuja 24/7 Dispatch Center and emergency contacts.
+                  This immediately broadcasts your live Abuja GPS coordinates and ride details to the 24/7 Dispatch Command Center and your saved emergency contacts.
                 </p>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button className="btn-secondary" onClick={() => setShowSosModal(false)} style={{ flex: 1 }}>
                     Cancel
                   </button>
-                  <button className="btn-primary" onClick={handleTriggerSos} style={{ flex: 1, background: '#ef4444' }}>
+                  <button className="btn-primary" onClick={handleTriggerSos} style={{ flex: 1, background: '#EF4444', color: '#FFFFFF' }}>
                     Send SOS Alert
                   </button>
                 </div>

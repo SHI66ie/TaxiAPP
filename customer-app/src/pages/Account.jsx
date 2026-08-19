@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Shield, MapPin, Bell, Phone, Lock, Heart, ChevronRight, CheckCircle2, WifiOff, HelpCircle, LogOut } from 'lucide-react';
+import { User, Shield, MapPin, Bell, Phone, Lock, Heart, ChevronRight, CheckCircle2, WifiOff, HelpCircle, LogOut, Star, Plus } from 'lucide-react';
 
 const Account = () => {
   const [profile, setProfile] = useState({
@@ -31,11 +31,13 @@ const Account = () => {
   };
 
   return (
-    <div style={{ padding: '20px', paddingBottom: 'calc(var(--nav-height) + 24px)', minHeight: '100%' }}>
+    <div style={{ padding: '20px', paddingBottom: '90px', minHeight: '100%' }}>
       {/* Header */}
       <div style={{ marginBottom: '16px' }}>
-        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Passenger Profile</span>
-        <h1 className="text-h1" style={{ fontSize: '24px', margin: 0 }}>Account</h1>
+        <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.5px' }}>
+          Aber Rider Profile
+        </span>
+        <h1 className="text-h1" style={{ fontSize: '24px', margin: 0, color: '#FFFFFF' }}>Account</h1>
       </div>
 
       {/* User Profile Card */}
@@ -43,53 +45,67 @@ const Account = () => {
         className="glass-panel" 
         style={{ 
           padding: '20px', 
-          borderRadius: '16px', 
+          borderRadius: '18px', 
           display: 'flex', 
           alignItems: 'center', 
           gap: '16px',
           marginBottom: '20px',
-          border: '1px solid rgba(255,255,255,0.08)'
+          border: '1px solid rgba(255, 255, 255, 0.08)'
         }}
       >
         <div style={{ 
-          width: '56px', 
-          height: '56px', 
+          width: '60px', 
+          height: '60px', 
           borderRadius: '50%', 
-          backgroundColor: 'rgba(16, 185, 129, 0.15)', 
-          border: '2px solid var(--accent-primary)',
-          display: 'flex',
-          alignItems: 'center',
+          backgroundColor: 'var(--bg-surface-elevated)', 
+          border: '2px solid var(--aber-yellow)',
+          display: 'flex', 
+          alignItems: 'center', 
           justifyContent: 'center',
-          color: 'var(--accent-primary)'
+          color: 'var(--aber-yellow)',
+          flexShrink: 0
         }}>
-          <User size={28} />
+          <User size={30} />
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <h3 className="text-h3" style={{ fontSize: '16px', margin: 0 }}>{profile.name}</h3>
-            <CheckCircle2 size={16} color="var(--accent-primary)" />
+            <h3 className="text-h3" style={{ fontSize: '17px', margin: 0, color: '#FFFFFF' }}>{profile.name}</h3>
+            <CheckCircle2 size={16} color="var(--aber-yellow)" />
           </div>
-          <p className="text-sm" style={{ color: 'var(--text-muted)', margin: '2px 0 0' }}>{profile.phone}</p>
-          <span style={{ fontSize: '11px', color: 'var(--accent-primary)', fontWeight: '600' }}>⭐ 4.98 Rider Rating</span>
+          <p className="text-sm" style={{ color: 'var(--text-muted)', margin: '2px 0 4px' }}>{profile.phone}</p>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(255, 212, 40, 0.12)', padding: '2px 8px', borderRadius: '12px' }}>
+            <Star size={12} color="#FFD428" fill="#FFD428" />
+            <span style={{ fontSize: '11px', color: 'var(--aber-yellow)', fontWeight: '700' }}>4.98 Rider Score</span>
+          </div>
         </div>
       </div>
 
-      {/* Emergency Contacts Section (Crucial for SOS) */}
-      <div className="glass-panel" style={{ padding: '18px', borderRadius: '14px', marginBottom: '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+      {/* Emergency Contacts Section */}
+      <div className="glass-panel" style={{ padding: '18px', borderRadius: '16px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Shield size={18} color="#ef4444" />
-            <h3 className="text-h3" style={{ fontSize: '15px', margin: 0 }}>Emergency SOS Contacts</h3>
+            <Shield size={18} color="#EF4444" />
+            <h3 className="text-h3" style={{ fontSize: '15px', margin: 0, color: '#FFFFFF' }}>Emergency SOS Contacts</h3>
           </div>
           <button 
             onClick={() => setShowAddContact(!showAddContact)}
-            style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              color: 'var(--aber-yellow)', 
+              fontSize: '12px', 
+              fontWeight: '700', 
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '2px'
+            }}
           >
-            {showAddContact ? 'Cancel' : '+ Add'}
+            {showAddContact ? 'Cancel' : '+ Add Contact'}
           </button>
         </div>
 
-        <p className="text-sm" style={{ color: 'var(--text-muted)', fontSize: '12px', marginBottom: '12px' }}>
+        <p className="text-sm" style={{ color: 'var(--text-secondary)', fontSize: '12px', marginBottom: '12px' }}>
           When you activate SOS, these contacts will automatically receive your live Abuja GPS tracking link.
         </p>
 
@@ -101,17 +117,19 @@ const Account = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '10px 12px',
-                borderRadius: '8px',
-                background: 'rgba(255,255,255,0.02)',
-                border: '1px solid rgba(255,255,255,0.05)'
+                padding: '10px 14px',
+                borderRadius: '12px',
+                background: 'rgba(255, 255, 255, 0.03)',
+                border: '1px solid rgba(255, 255, 255, 0.06)'
               }}
             >
               <div>
-                <div style={{ fontSize: '13px', fontWeight: '600' }}>{contact.name}</div>
+                <div style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF' }}>{contact.name}</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{contact.phone}</div>
               </div>
-              <Phone size={14} color="var(--accent-primary)" />
+              <a href={`tel:${contact.phone}`} style={{ color: 'var(--aber-yellow)', textDecoration: 'none' }}>
+                <Phone size={16} />
+              </a>
             </div>
           ))}
         </div>
@@ -123,7 +141,7 @@ const Account = () => {
               placeholder="Contact Name (e.g. Brother)" 
               value={newContactName}
               onChange={e => setNewContactName(e.target.value)}
-              style={{ padding: '8px 12px', borderRadius: '6px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '12px', outline: 'none' }}
+              style={{ padding: '10px 12px', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', color: '#FFFFFF', fontSize: '13px', outline: 'none' }}
               required
             />
             <input 
@@ -131,10 +149,10 @@ const Account = () => {
               placeholder="Phone Number (+234...)" 
               value={newContactPhone}
               onChange={e => setNewContactPhone(e.target.value)}
-              style={{ padding: '8px 12px', borderRadius: '6px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '12px', outline: 'none' }}
+              style={{ padding: '10px 12px', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)', color: '#FFFFFF', fontSize: '13px', outline: 'none' }}
               required
             />
-            <button type="submit" className="btn-primary" style={{ padding: '8px', fontSize: '12px' }}>
+            <button type="submit" className="btn-primary" style={{ padding: '10px', fontSize: '13px' }}>
               Save Emergency Contact
             </button>
           </form>
@@ -142,24 +160,28 @@ const Account = () => {
       </div>
 
       {/* Saved Places */}
-      <div className="glass-panel" style={{ padding: '18px', borderRadius: '14px', marginBottom: '20px' }}>
-        <h3 className="text-h3" style={{ fontSize: '15px', marginBottom: '12px' }}>Saved Places</h3>
+      <div className="glass-panel" style={{ padding: '18px', borderRadius: '16px', marginBottom: '20px' }}>
+        <h3 className="text-h3" style={{ fontSize: '15px', marginBottom: '12px', color: '#FFFFFF' }}>Saved Places</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <MapPin size={16} color="var(--accent-primary)" />
+              <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(255, 212, 40, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--aber-yellow)' }}>
+                <MapPin size={16} />
+              </div>
               <div>
-                <div style={{ fontSize: '13px', fontWeight: '600' }}>Home</div>
+                <div style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF' }}>Home</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Aminu Kano Crescent, Wuse II</div>
               </div>
             </div>
             <ChevronRight size={16} color="var(--text-muted)" />
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderTop: '1px solid rgba(255, 255, 255, 0.05)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <MapPin size={16} color="#3b82f6" />
+              <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(59, 130, 246, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3B82F6' }}>
+                <MapPin size={16} />
+              </div>
               <div>
-                <div style={{ fontSize: '13px', fontWeight: '600' }}>Office</div>
+                <div style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF' }}>Office / Ministry</div>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Central Business District, Abuja</div>
               </div>
             </div>
@@ -169,46 +191,48 @@ const Account = () => {
       </div>
 
       {/* App Preferences */}
-      <div className="glass-panel" style={{ padding: '18px', borderRadius: '14px', marginBottom: '20px' }}>
-        <h3 className="text-h3" style={{ fontSize: '15px', marginBottom: '12px' }}>Preferences</h3>
+      <div className="glass-panel" style={{ padding: '18px', borderRadius: '16px', marginBottom: '20px' }}>
+        <h3 className="text-h3" style={{ fontSize: '15px', marginBottom: '12px', color: '#FFFFFF' }}>Preferences</h3>
         
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0' }}>
           <div>
-            <div style={{ fontSize: '13px', fontWeight: '600' }}>Low Data / Offline Mode</div>
+            <div style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF' }}>Low Data / Offline Mode</div>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Optimizes map tile caching for Nigerian networks</div>
           </div>
           <input 
             type="checkbox" 
             checked={lowDataMode} 
             onChange={(e) => setLowDataMode(e.target.checked)}
-            style={{ width: '18px', height: '18px', accentColor: 'var(--accent-primary)', cursor: 'pointer' }}
+            style={{ width: '18px', height: '18px', accentColor: 'var(--aber-yellow)', cursor: 'pointer' }}
           />
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderTop: '1px solid rgba(255, 255, 255, 0.05)' }}>
           <div>
-            <div style={{ fontSize: '13px', fontWeight: '600' }}>Auto-Suggest Carpool Corridors</div>
+            <div style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF' }}>Auto-Suggest Carpool Corridors</div>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Automatically checks route overlapping for 40% savings</div>
           </div>
           <input 
             type="checkbox" 
             checked={autoCarpool} 
             onChange={(e) => setAutoCarpool(e.target.checked)}
-            style={{ width: '18px', height: '18px', accentColor: 'var(--accent-primary)', cursor: 'pointer' }}
+            style={{ width: '18px', height: '18px', accentColor: 'var(--aber-yellow)', cursor: 'pointer' }}
           />
         </div>
       </div>
 
       {/* 24/7 Abuja Support */}
-      <div className="glass-panel" style={{ padding: '16px', borderRadius: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="glass-panel" style={{ padding: '16px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <HelpCircle size={18} color="var(--accent-primary)" />
+          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(255, 212, 40, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--aber-yellow)' }}>
+            <HelpCircle size={20} />
+          </div>
           <div>
-            <div style={{ fontSize: '13px', fontWeight: '600' }}>24/7 Abuja Support Hotline</div>
+            <div style={{ fontSize: '13px', fontWeight: '700', color: '#FFFFFF' }}>24/7 Aber Support Hotline</div>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>support@abujataxi.ng • 0800-ABUJA-TAXI</div>
           </div>
         </div>
-        <a href="tel:0800228528294" style={{ color: 'var(--accent-primary)', textDecoration: 'none', fontSize: '13px', fontWeight: '700' }}>
+        <a href="tel:0800228528294" className="btn-primary" style={{ padding: '8px 14px', width: 'auto', fontSize: '12px', textDecoration: 'none' }}>
           Call
         </a>
       </div>
