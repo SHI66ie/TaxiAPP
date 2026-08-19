@@ -51,7 +51,7 @@ const Wallet = () => {
 
   const handleApplyPromo = () => {
     if (promoCode.trim().toUpperCase() === 'ABUJA50' || promoCode.trim().toUpperCase() === 'TAXI2026') {
-      setPromoMessage({ type: 'success', text: '🎉 ₦2,000 Aber Commute Voucher Credited!' });
+      setPromoMessage({ type: 'success', text: '🎉 ₦2,000 Commute Voucher Credited!' });
       setBalance(prev => prev + 2000);
       setTransactions(prev => [
         {
@@ -75,12 +75,12 @@ const Wallet = () => {
       {/* Header */}
       <div style={{ marginBottom: '16px' }}>
         <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.5px' }}>
-          Aber Payments & Pass
+          Digital Cash & Card
         </span>
         <h1 className="text-h1" style={{ fontSize: '24px', margin: 0, color: '#FFFFFF' }}>Wallet</h1>
       </div>
 
-      {/* Aber Yellow Gold Card */}
+      {/* Gold Balance Card */}
       <div 
         className="glass-panel" 
         style={{ 
@@ -97,7 +97,7 @@ const Wallet = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <span style={{ fontSize: '11px', color: '#3A3000', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: '800' }}>
-              Aber Virtual Balance
+              Available Balance
             </span>
             <h2 style={{ fontSize: '34px', color: '#0E131F', margin: '4px 0 0', fontWeight: '800', letterSpacing: '-0.5px' }}>
               ₦{balance.toLocaleString()}
@@ -264,7 +264,7 @@ const Wallet = () => {
           padding: '20px'
         }}>
           <div className="glass-panel-elevated" style={{ width: '100%', maxWidth: '380px', padding: '24px' }}>
-            <h2 className="text-h2" style={{ marginBottom: '6px', fontSize: '20px', color: '#FFFFFF' }}>Top-up Aber Wallet</h2>
+            <h2 className="text-h2" style={{ marginBottom: '6px', fontSize: '20px', color: '#FFFFFF' }}>Top-up Wallet</h2>
             <p className="text-sm" style={{ color: 'var(--text-secondary)', marginBottom: '18px' }}>
               Select an amount to fund your Abuja commuter balance via Paystack.
             </p>

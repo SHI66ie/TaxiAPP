@@ -193,12 +193,12 @@ const LiveMap = ({ pickupCoords, dropoffCoords, isBooking }) => {
           />
         )}
 
-        {/* Active Aber Taxi Drivers */}
+        {/* Active Taxi Drivers */}
         {Object.entries(drivers).map(([id, loc]) => (
           <Marker key={id} position={[loc.lat, loc.lng]} icon={createTaxiIcon(loc.name)}>
             <Popup>
               <div style={{ color: '#0E131F', fontSize: '12px' }}>
-                <strong style={{ display: 'block', color: '#0E131F' }}>🚕 {loc.name || 'Abuja Aber Driver'}</strong>
+                <strong style={{ display: 'block', color: '#0E131F' }}>🚕 {loc.name || 'Abuja Driver'}</strong>
                 <span style={{ color: '#10B981', fontWeight: '600' }}>● Online & Ready</span>
               </div>
             </Popup>

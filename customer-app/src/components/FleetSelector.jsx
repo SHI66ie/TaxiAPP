@@ -53,7 +53,7 @@ const FleetSelector = ({
   const categories = [
     { 
       id: 'standard', 
-      name: 'Aber Standard', 
+      name: 'Standard Taxi', 
       icon: Car, 
       price: estimates.standard ? `₦${estimates.standard.toLocaleString()}` : '₦2,500', 
       numericPrice: estimates.standard || 2500,
@@ -66,7 +66,7 @@ const FleetSelector = ({
     },
     { 
       id: 'carpool', 
-      name: 'Aber Carpool', 
+      name: 'Carpool Split', 
       icon: Users, 
       price: estimates.carpool ? `₦${estimates.carpool.toLocaleString()}` : '₦1,500', 
       numericPrice: estimates.carpool || 1500,
@@ -79,7 +79,7 @@ const FleetSelector = ({
     },
     { 
       id: 'comfort', 
-      name: 'Aber Comfort', 
+      name: 'Comfort Exec', 
       icon: Zap, 
       price: estimates.comfort ? `₦${estimates.comfort.toLocaleString()}` : '₦3,500', 
       numericPrice: estimates.comfort || 3500,
@@ -92,7 +92,7 @@ const FleetSelector = ({
     },
     { 
       id: 'lite', 
-      name: 'Aber Lite', 
+      name: 'TaxiAPP Lite', 
       icon: Car, 
       price: estimates.lite ? `₦${estimates.lite.toLocaleString()}` : '₦1,800', 
       numericPrice: estimates.lite || 1800,
@@ -103,7 +103,7 @@ const FleetSelector = ({
     },
     { 
       id: 'okada', 
-      name: 'Aber Express Bike', 
+      name: 'Express Bike', 
       icon: Bike, 
       price: estimates.okada ? `₦${estimates.okada.toLocaleString()}` : '₦1,100', 
       numericPrice: estimates.okada || 1100,

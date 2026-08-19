@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, Phone, MessageSquare, User, Star, AlertTriangle, CheckCircle2, Navigation, X, ShieldAlert, KeyRound, Clock, ArrowRight } from 'lucide-react';
 import { socket } from '../App';
+import ChatModal from './ChatModal';
+import TripRatingModal from './TripRatingModal';
 
 const ActiveRide = ({ ride, onCancel, onCompleted }) => {
   const [currentRide, setCurrentRide] = useState(ride);
   const [showSosModal, setShowSosModal] = useState(false);
   const [sosSent, setSosSent] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [showRating, setShowRating] = useState(false);
 
   useEffect(() => {
     if (ride) setCurrentRide(ride);
@@ -16,8 +20,9 @@ const ActiveRide = ({ ride, onCancel, onCompleted }) => {
     const handleStatusUpdate = (updatedRide) => {
       if (currentRide && (updatedRide.id === currentRide.id || updatedRide.id === currentRide.rideId)) {
         setCurrentRide(prev => ({ ...prev, ...updatedRide }));
-        if (updatedRide.status === 'COMPLETED' && onCompleted) {
-          onCompleted(updatedRide);
+        if (updatedRide.status === 'COMPLETED') {
+          setShowRating(true);
+          if (onCompleted) onCompleted(updatedRide);
         }
       }
     };
@@ -212,6 +217,23 @@ const ActiveRide = ({ ride, onCancel, onCompleted }) => {
           >
             <Phone size={18} />
           </a>
+          <button
+            onClick={() => setShowChat(true)}
+            style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '50%',
+              background: 'var(--bg-surface-elevated)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              color: 'var(--aber-yellow)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer'
+            }}
+          >
+            <MessageSquare size={18} />
+          </button>
         </div>
       </div>
 
@@ -325,6 +347,20 @@ const ActiveRide = ({ ride, onCancel, onCompleted }) => {
             )}
           </div>
         </div>
+      )}
+
+      {/* In-App Chat Modal */}
+      {showChat && (
+        <ChatModal ride={currentRide} onClose={() => setShowChat(false)} />
+      )}
+
+      {/* Trip Rating & Tip Modal */}
+      {showRating && (
+        <TripRatingModal 
+          ride={currentRide} 
+          onClose={() => { setShowRating(false); onCancel && onCancel(); }}
+          onSubmit={() => { setShowRating(false); onCancel && onCancel(); }}
+        />
       )}
     </div>
   );

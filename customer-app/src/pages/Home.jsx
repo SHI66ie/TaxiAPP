@@ -10,7 +10,7 @@ const Home = () => {
   const [tripSearch, setTripSearch] = useState(null);
   const [selectedFleet, setSelectedFleet] = useState({
     id: 'standard',
-    name: 'Aber Standard',
+    name: 'Standard Taxi',
     numericPrice: 2500,
     price: '₦2,500',
     paymentMethod: 'Paystack'
@@ -101,7 +101,7 @@ const Home = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
             <div>
               <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.5px' }}>
-                Aber Ride Selection
+                Ride Options
               </span>
               <h2 className="text-h2" style={{ margin: 0, fontSize: '18px', color: '#FFFFFF' }}>Select Vehicle Class</h2>
             </div>
@@ -140,7 +140,7 @@ const Home = () => {
               disabled={bookingLoading}
               style={{ flex: 1.8, padding: '12px' }}
             >
-              {bookingLoading ? 'Dispatching...' : `Confirm ${selectedFleet.name.replace('Aber ', '')}`}
+              {bookingLoading ? 'Dispatching...' : `Book ${selectedFleet.name}`}
             </button>
           </div>
         </div>

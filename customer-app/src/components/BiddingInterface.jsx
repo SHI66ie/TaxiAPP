@@ -217,7 +217,7 @@ const BiddingInterface = ({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <div style={{ textAlign: 'center' }}>
         <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.5px' }}>
-          Aber P2P Fare Negotiation
+          P2P Fare Negotiation
         </span>
         <h2 className="text-h2" style={{ margin: '4px 0 12px', fontSize: '19px', color: '#FFFFFF' }}>
           Set Your Custom Price

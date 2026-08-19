@@ -59,7 +59,7 @@ const Activity = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
         <div>
           <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.5px' }}>
-            Aber Trip History
+            Trip History
           </span>
           <h1 className="text-h1" style={{ fontSize: '24px', margin: 0, color: '#FFFFFF' }}>Activity</h1>
         </div>
@@ -103,7 +103,7 @@ const Activity = () => {
           <Car size={36} style={{ margin: '0 auto 12px', opacity: 0.5, color: 'var(--aber-yellow)' }} />
           <h3 className="text-h3" style={{ marginBottom: '6px', color: '#FFFFFF' }}>No trips found</h3>
           <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-            Your booked trips and Aber carpool commutes will appear here.
+            Your booked trips and carpool commutes will appear here.
           </p>
         </div>
       ) : (
@@ -131,7 +131,7 @@ const Activity = () => {
                     </span>
                     {ride.isCarpool && (
                       <span className="badge-pill badge-orange" style={{ fontSize: '10px' }}>
-                        👥 Aber Carpool
+                        👥 Carpool Split
                       </span>
                     )}
                   </div>
@@ -168,7 +168,7 @@ const Activity = () => {
                   borderTop: '1px solid rgba(255, 255, 255, 0.06)'
                 }}>
                   <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                    Driver: <span style={{ color: '#FFFFFF', fontWeight: '600' }}>{ride.driverName || 'Assigned Aber Driver'}</span>
+                    Driver: <span style={{ color: '#FFFFFF', fontWeight: '600' }}>{ride.driverName || 'Assigned Driver'}</span>
                   </div>
                   <button 
                     onClick={() => setSelectedReceipt(ride)}
@@ -211,7 +211,7 @@ const Activity = () => {
           <div className="glass-panel-elevated" style={{ width: '100%', maxWidth: '380px', padding: '24px', position: 'relative' }}>
             <div style={{ textAlign: 'center', marginBottom: '16px', borderBottom: '1px dashed rgba(255, 255, 255, 0.15)', paddingBottom: '16px' }}>
               <span className="badge-pill badge-yellow" style={{ marginBottom: '6px' }}>
-                Aber Taxi Abuja
+                Taxi Abuja
               </span>
               <h2 className="text-h2" style={{ margin: '4px 0 2px', fontSize: '20px', color: '#FFFFFF' }}>Trip Electronic Receipt</h2>
               <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Booking Ref: {selectedReceipt.id}</span>
@@ -232,7 +232,7 @@ const Activity = () => {
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: 'var(--text-muted)' }}>Vehicle Class:</span>
-                <span style={{ fontWeight: '600', color: 'var(--aber-yellow)', textTransform: 'capitalize' }}>{selectedReceipt.vehicleType || 'Aber Standard'}</span>
+                <span style={{ fontWeight: '600', color: 'var(--aber-yellow)', textTransform: 'capitalize' }}>{selectedReceipt.vehicleType || 'Standard Taxi'}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: 'var(--text-muted)' }}>Payment Channel:</span>

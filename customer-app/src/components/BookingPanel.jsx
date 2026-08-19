@@ -67,7 +67,7 @@ const BookingPanel = ({ onSearch }) => {
         </div>
         <span className="badge-pill badge-green">
           <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981', display: 'inline-block' }}></span>
-          18 Aber Taxis
+          18 Taxis Active
         </span>
       </div>
       
@@ -231,7 +231,7 @@ const BookingPanel = ({ onSearch }) => {
           disabled={!destination.trim()} 
           style={{ width: '100%', padding: '14px', fontSize: '15px' }}
         >
-          <Search size={18} /> Find Aber Rides & Compare
+          <Search size={18} /> Find Rides & Compare Prices
         </button>
       </form>
     </div>

@@ -317,10 +317,106 @@ router.post('/sos/trigger', (req, res) => {
     req.io.emit('emergency_sos_alert', sosPayload);
   }
 
+// In-App Chat Messaging Store (in-memory)
+let chatMessages = [
+  { id: 'msg_1', rideId: 'ride_101', sender: 'driver', text: 'Hello! I am on my way, 3 mins away.', time: '10:12 AM' },
+  { id: 'msg_2', rideId: 'ride_101', sender: 'passenger', text: 'Great, I am waiting by the gate in Wuse II.', time: '10:13 AM' }
+];
+
+// Get Chat Messages for a Ride
+router.get('/messages/:rideId', (req, res) => {
+  const { rideId } = req.params;
+  const msgs = chatMessages.filter(m => m.rideId === rideId || m.rideId === 'ride_101');
+  res.json({ success: true, data: msgs });
+});
+
+// Send Chat Message
+router.post('/messages/send', (req, res) => {
+  try {
+    const { rideId, sender, text } = req.body;
+    const newMsg = {
+      id: `msg_${Date.now()}`,
+      rideId: rideId || 'ride_101',
+      sender: sender || 'passenger',
+      text,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    chatMessages.push(newMsg);
+
+    if (req.io) {
+      req.io.emit('new_chat_message', newMsg);
+    }
+    res.json({ success: true, data: newMsg });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Rate & Tip Driver
+router.post('/rides/:id/rate', (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rating, compliments, comment, tipAmount } = req.body;
+    
+    const rateData = {
+      rideId: id,
+      rating: rating || 5,
+      compliments: compliments || [],
+      comment: comment || '',
+      tipAmount: tipAmount || 0,
+      ratedAt: new Date().toISOString()
+    };
+
+    if (req.io) {
+      req.io.emit('ride_rated', rateData);
+    }
+
+    res.json({ success: true, message: 'Rating & tip submitted successfully!', data: rateData });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// In-App Notifications
+router.get('/notifications', (req, res) => {
+  const notifications = [
+    {
+      id: 'notif_1',
+      title: '🎉 ₦2,000 Welcome Voucher',
+      message: 'Use promo code ABUJA50 for ₦2,000 off your next commute in Abuja.',
+      time: '10 mins ago',
+      type: 'PROMO',
+      read: false
+    },
+    {
+      id: 'notif_2',
+      title: '⚡ Surge Alert: CBD & Maitama',
+      message: 'High commuter demand in Central Business District. 1.2x fares active.',
+      time: '1 hour ago',
+      type: 'SURGE',
+      read: false
+    },
+    {
+      id: 'notif_3',
+      title: '🛡️ Safety Features Active',
+      message: 'Emergency SOS is connected directly to FCT Command Center.',
+      time: 'Yesterday',
+      type: 'SAFETY',
+      read: true
+    }
+  ];
+  res.json({ success: true, data: notifications });
+});
+
+// Referral Code Validation
+router.post('/referrals/claim', (req, res) => {
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ error: 'Referral code is required' });
+  
   res.json({
     success: true,
-    message: 'SOS Alert dispatched to Abuja Control Room & Emergency Contacts!',
-    data: sosPayload
+    message: 'Referral code accepted! ₦1,000 credit added to your Abuja wallet.',
+    bonusAmount: 1000
   });
 });
 

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { User, Shield, MapPin, Bell, Phone, Lock, Heart, ChevronRight, CheckCircle2, WifiOff, HelpCircle, LogOut, Star, Plus } from 'lucide-react';
+import { User, Shield, MapPin, Bell, Phone, Lock, Heart, ChevronRight, CheckCircle2, WifiOff, HelpCircle, LogOut, Star, Plus, Gift, Settings } from 'lucide-react';
+import InviteFriendsModal from '../components/InviteFriendsModal';
+import NotificationsModal from '../components/NotificationsModal';
 
 const Account = () => {
   const [profile, setProfile] = useState({
@@ -19,6 +21,8 @@ const Account = () => {
   const [newContactPhone, setNewContactPhone] = useState('');
   const [lowDataMode, setLowDataMode] = useState(false);
   const [autoCarpool, setAutoCarpool] = useState(true);
+  const [showInvite, setShowInvite] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const handleAddContact = (e) => {
     e.preventDefault();
@@ -35,7 +39,7 @@ const Account = () => {
       {/* Header */}
       <div style={{ marginBottom: '16px' }}>
         <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.5px' }}>
-          Aber Rider Profile
+          Passenger Profile
         </span>
         <h1 className="text-h1" style={{ fontSize: '24px', margin: 0, color: '#FFFFFF' }}>Account</h1>
       </div>
@@ -221,6 +225,47 @@ const Account = () => {
         </div>
       </div>
 
+      {/* Quick Action Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px' }}>
+        <button
+          onClick={() => setShowInvite(true)}
+          style={{
+            padding: '14px',
+            borderRadius: '16px',
+            background: 'linear-gradient(135deg, rgba(255, 212, 40, 0.15), rgba(255, 137, 0, 0.1))',
+            border: '1px solid rgba(255, 212, 40, 0.3)',
+            cursor: 'pointer',
+            textAlign: 'left',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px'
+          }}
+        >
+          <Gift size={22} color="var(--aber-yellow)" />
+          <div style={{ fontSize: '13px', fontWeight: '700', color: '#FFFFFF' }}>Invite Friends</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>₦1,000 per referral</div>
+        </button>
+
+        <button
+          onClick={() => setShowNotifications(true)}
+          style={{
+            padding: '14px',
+            borderRadius: '16px',
+            background: 'rgba(255, 255, 255, 0.03)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            cursor: 'pointer',
+            textAlign: 'left',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px'
+          }}
+        >
+          <Bell size={22} color="var(--aber-yellow)" />
+          <div style={{ fontSize: '13px', fontWeight: '700', color: '#FFFFFF' }}>Notifications</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>2 unread alerts</div>
+        </button>
+      </div>
+
       {/* 24/7 Abuja Support */}
       <div className="glass-panel" style={{ padding: '16px', borderRadius: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -228,7 +273,7 @@ const Account = () => {
             <HelpCircle size={20} />
           </div>
           <div>
-            <div style={{ fontSize: '13px', fontWeight: '700', color: '#FFFFFF' }}>24/7 Aber Support Hotline</div>
+            <div style={{ fontSize: '13px', fontWeight: '700', color: '#FFFFFF' }}>24/7 Abuja Support Hotline</div>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>support@abujataxi.ng • 0800-ABUJA-TAXI</div>
           </div>
         </div>
@@ -236,6 +281,10 @@ const Account = () => {
           Call
         </a>
       </div>
+
+      {/* Modals */}
+      {showInvite && <InviteFriendsModal onClose={() => setShowInvite(false)} />}
+      {showNotifications && <NotificationsModal onClose={() => setShowNotifications(false)} />}
     </div>
   );
 };
