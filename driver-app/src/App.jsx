@@ -32,9 +32,71 @@ function App() {
     socket.on('connect', onConnect);
     socket.on('disconnect', onDisconnect);
 
+    // Global socket event listeners for driver app
+    socket.on('emergency_sos_alert', (payload) => {
+      console.log('SOS Alert received:', payload);
+      alert('🚨 Emergency SOS Alert: ' + payload.message);
+    });
+
+    socket.on('new_ride_dispatched', (ride) => {
+      console.log('New ride dispatched:', ride);
+    });
+
+    socket.on('ride_status_updated', (ride) => {
+      console.log('Ride status updated:', ride);
+    });
+
+    socket.on('driver_kyc_approved', (result) => {
+      console.log('Driver KYC approved:', result);
+    });
+
+    socket.on('new_bid_created', (bid) => {
+      console.log('New bid created:', bid);
+    });
+
+    socket.on('driver_counter_offer_placed', (bid) => {
+      console.log('Driver counter offer placed:', bid);
+    });
+
+    socket.on('bid_accepted', (result) => {
+      console.log('Bid accepted:', result);
+    });
+
+    socket.on('surge_updated', (zone) => {
+      console.log('Surge zone updated:', zone);
+    });
+
+    socket.on('location_changed', (data) => {
+      console.log('Driver location changed:', data);
+    });
+
+    socket.on('payment_verified', (verified) => {
+      console.log('Payment verified:', verified);
+    });
+
+    socket.on('driver_payout_settled', (payout) => {
+      console.log('Driver payout settled:', payout);
+    });
+
+    socket.on('carpool_match_found', (booking) => {
+      console.log('Carpool match found:', booking);
+    });
+
     return () => {
       socket.off('connect', onConnect);
       socket.off('disconnect', onDisconnect);
+      socket.off('emergency_sos_alert');
+      socket.off('new_ride_dispatched');
+      socket.off('ride_status_updated');
+      socket.off('driver_kyc_approved');
+      socket.off('new_bid_created');
+      socket.off('driver_counter_offer_placed');
+      socket.off('bid_accepted');
+      socket.off('surge_updated');
+      socket.off('location_changed');
+      socket.off('payment_verified');
+      socket.off('driver_payout_settled');
+      socket.off('carpool_match_found');
     };
   }, []);
 
