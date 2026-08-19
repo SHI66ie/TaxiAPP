@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Compass, CheckCircle, Navigation, ShieldAlert, Phone, AlertCircle, Clock } from 'lucide-react';
+import { Compass, CheckCircle, Navigation, ShieldAlert, Phone, AlertCircle, Clock, KeyRound, QrCode, MapPin } from 'lucide-react';
 import { socket } from '../App';
 import LiveMap from '../components/LiveMap';
 
@@ -14,8 +14,8 @@ export default function Rides() {
       const res = await fetch('/api/rides');
       const json = await res.json();
       if (json.success) {
-        // Filter rides for this driver
-        const driverRides = json.data.filter(r => r.driverId === driverId);
+        // Filter rides for this driver or unassigned in progress
+        const driverRides = json.data.filter(r => r.driverId === driverId || !r.driverId);
         setRides(driverRides);
       }
     } catch (err) {
@@ -42,7 +42,7 @@ export default function Rides() {
       const res = await fetch(`/api/rides/${rideId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: nextStatus })
+        body: JSON.stringify({ status: nextStatus, driverId })
       });
       const json = await res.json();
       if (json.success) {
@@ -64,13 +64,13 @@ export default function Rides() {
           coords: ride.pickupCoords
         })
       });
-      alert('🚨 SOS Alert Dispatched to Command Center!');
+      alert('🚨 SOS Alert Dispatched to Abuja Control Center!');
     } catch (err) {
       console.error(err);
     }
   };
 
-  const activeRides = rides.filter(r => r.status === 'MATCHED' || r.status === 'IN_PROGRESS');
+  const activeRides = rides.filter(r => r.status === 'MATCHED' || r.status === 'ARRIVING' || r.status === 'IN_PROGRESS');
   const pastRides = rides.filter(r => r.status === 'COMPLETED' || r.status === 'CANCELLED');
 
   return (
@@ -118,63 +118,92 @@ export default function Rides() {
               )}
               
               <div className="glass" style={{ padding: '20px', borderLeft: '4px solid var(--accent-primary)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-                <div>
-                  <h3 className="text-h3" style={{ fontSize: '15px' }}>{ride.passengerName}</h3>
-                  <a href={`tel:${ride.passengerPhone}`} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'var(--accent-primary)', textDecoration: 'none', marginTop: '2px' }}>
-                    <Phone size={12} /> {ride.passengerPhone}
-                  </a>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                  <div>
+                    <h3 className="text-h3" style={{ fontSize: '15px' }}>{ride.passengerName}</h3>
+                    <a href={`tel:${ride.passengerPhone}`} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'var(--accent-primary)', textDecoration: 'none', marginTop: '2px' }}>
+                      <Phone size={12} /> {ride.passengerPhone}
+                    </a>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontWeight: 700, fontSize: '16px', color: 'var(--text-primary)' }}>₦{ride.fare.toLocaleString()}</div>
+                    <span className={`badge ${ride.status === 'IN_PROGRESS' ? 'badge-success' : 'badge-warning'}`} style={{ fontSize: '9px', padding: '2px 6px', marginTop: '4px' }}>
+                      {ride.status === 'IN_PROGRESS' ? 'On Trip' : ride.status === 'ARRIVING' ? 'Arriving' : 'Assigned'}
+                    </span>
+                  </div>
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontWeight: 700, fontSize: '16px', color: 'var(--text-primary)' }}>₦{ride.fare.toLocaleString()}</div>
-                  <span className={`badge ${ride.status === 'IN_PROGRESS' ? 'badge-success' : 'badge-warning'}`} style={{ fontSize: '9px', padding: '2px 6px', marginTop: '4px' }}>
-                    {ride.status === 'IN_PROGRESS' ? 'On Trip' : 'Assigned'}
+
+                {/* Safety Verification PIN Box */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  background: 'rgba(245, 158, 11, 0.08)',
+                  border: '1px dashed rgba(245, 158, 11, 0.3)',
+                  padding: '8px 12px',
+                  borderRadius: '8px',
+                  marginBottom: '12px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <KeyRound size={14} color="var(--accent-gold)" />
+                    <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Passenger Verification PIN:</span>
+                  </div>
+                  <span style={{ fontWeight: '800', letterSpacing: '2px', color: 'var(--accent-gold)' }}>
+                    {ride.securityPin || '7392'}
                   </span>
                 </div>
-              </div>
 
-              <div style={{ fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}>
-                <div>
-                  <span style={{ color: 'var(--text-muted)' }}>Pickup:</span> <span style={{ color: 'var(--text-secondary)' }}>{ride.pickupLocation}</span>
-                </div>
-                <div>
-                  <span style={{ color: 'var(--text-muted)' }}>Dropoff:</span> <span style={{ color: 'var(--text-secondary)' }}>{ride.dropoffLocation}</span>
-                </div>
-                {ride.isCarpool && (
-                  <div className="badge badge-info" style={{ width: 'fit-content', marginTop: '4px' }}>
-                    👥 Shared Commute (Carpool Partner: {ride.carpoolPartner || 'Matching'})
+                <div style={{ fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}>
+                  <div>
+                    <span style={{ color: 'var(--text-muted)' }}>Pickup:</span> <span style={{ color: 'var(--text-secondary)' }}>{ride.pickupLocation}</span>
                   </div>
-                )}
-              </div>
+                  <div>
+                    <span style={{ color: 'var(--text-muted)' }}>Dropoff:</span> <span style={{ color: 'var(--text-secondary)' }}>{ride.dropoffLocation}</span>
+                  </div>
+                  {ride.isCarpool && (
+                    <div className="badge badge-info" style={{ width: 'fit-content', marginTop: '4px' }}>
+                      👥 Shared Commute (Carpool Partner: {ride.carpoolPartner || 'Matching'})
+                    </div>
+                  )}
+                </div>
 
-              <div style={{ display: 'flex', gap: '10px' }}>
-                {ride.status === 'MATCHED' && (
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  {ride.status === 'MATCHED' && (
+                    <button 
+                      className="btn btn-secondary" 
+                      onClick={() => handleUpdateStatus(ride.id, 'ARRIVING')}
+                      style={{ flex: 1 }}
+                    >
+                      <Navigation size={16} /> Arrived at Pickup
+                    </button>
+                  )}
+                  {ride.status === 'ARRIVING' && (
+                    <button 
+                      className="btn btn-primary" 
+                      onClick={() => handleUpdateStatus(ride.id, 'IN_PROGRESS')}
+                      style={{ flex: 1 }}
+                    >
+                      <Navigation size={16} /> Start Ride
+                    </button>
+                  )}
+                  {ride.status === 'IN_PROGRESS' && (
+                    <button 
+                      className="btn btn-primary" 
+                      onClick={() => handleUpdateStatus(ride.id, 'COMPLETED')}
+                      style={{ flex: 1, background: 'linear-gradient(135deg, #10b981, #059669)' }}
+                    >
+                      <CheckCircle size={16} /> Complete & Settle Fare
+                    </button>
+                  )}
                   <button 
-                    className="btn btn-primary" 
-                    onClick={() => handleUpdateStatus(ride.id, 'IN_PROGRESS')}
-                    style={{ flex: 1 }}
+                    className="btn btn-danger" 
+                    onClick={() => handleTriggerSos(ride)}
+                    style={{ padding: '13px' }}
+                    title="Trigger Emergency SOS"
                   >
-                    <Navigation size={16} /> Start Ride
+                    <ShieldAlert size={16} />
                   </button>
-                )}
-                {ride.status === 'IN_PROGRESS' && (
-                  <button 
-                    className="btn btn-primary" 
-                    onClick={() => handleUpdateStatus(ride.id, 'COMPLETED')}
-                    style={{ flex: 1, background: 'linear-gradient(135deg, #10b981, #059669)' }}
-                  >
-                    <CheckCircle size={16} /> Complete Ride
-                  </button>
-                )}
-                <button 
-                  className="btn btn-danger" 
-                  onClick={() => handleTriggerSos(ride)}
-                  style={{ padding: '13px' }}
-                  title="Trigger Emergency SOS"
-                >
-                  <ShieldAlert size={16} />
-                </button>
-              </div>
+                </div>
               </div>
             </div>
           ))}
@@ -211,3 +240,4 @@ export default function Rides() {
     </div>
   );
 }
+

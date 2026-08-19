@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Square, Star, MapPin, Zap, RefreshCw } from 'lucide-react';
+import { Play, Square, Star, MapPin, Zap, RefreshCw, Bell, Navigation, CheckCircle2, X } from 'lucide-react';
 import { socket } from '../App';
 import LiveMap from '../components/LiveMap';
 
@@ -9,6 +9,8 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [surgeZone, setSurgeZone] = useState({ name: 'Central Business District', multiplier: 1.0 });
   const [surgeZones, setSurgeZones] = useState([]);
+  const [incomingOffer, setIncomingOffer] = useState(null);
+  const [countdown, setCountdown] = useState(15);
 
   const driverId = 'drv_101'; // Default simulated driver
 
@@ -34,7 +36,6 @@ export default function Home() {
       const json = await res.json();
       if (json.success && json.data.length > 0) {
         setSurgeZones(json.data);
-        // Find highest surge zone to alert driver
         const sorted = [...json.data].sort((a, b) => b.multiplier - a.multiplier);
         setSurgeZone(sorted[0]);
       }
@@ -57,11 +58,35 @@ export default function Home() {
       fetchSurgeData();
     });
 
+    // Listen for incoming ride offers dispatched by customers
+    socket.on('new_ride_dispatched', (ride) => {
+      if (status === 'AVAILABLE') {
+        setIncomingOffer(ride);
+        setCountdown(15);
+      }
+    });
+
     return () => {
       socket.off('location_changed');
       socket.off('surge_updated');
+      socket.off('new_ride_dispatched');
     };
-  }, []);
+  }, [status]);
+
+  // Countdown timer for incoming ride offer
+  useEffect(() => {
+    if (!incomingOffer) return;
+    if (countdown <= 0) {
+      setIncomingOffer(null);
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setCountdown(prev => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [incomingOffer, countdown]);
 
   // Location Simulation Ping
   useEffect(() => {
@@ -94,16 +119,8 @@ export default function Home() {
     setLoading(true);
     const nextStatus = status === 'OFFLINE' ? 'AVAILABLE' : 'OFFLINE';
     try {
-      // Direct driver status endpoints don't exist as clean REST endpoints in API, 
-      // but modifying location/telemetry or simulating can update statuses on backend, 
-      // or we can invoke our custom mock update via endpoint or local mock implementation.
-      // Wait! The server has routes, let's look at `apiRoutes.js` for updating status.
-      // `PATCH /rides/:id/status` is for rides.
-      // Let's check how admin dashboard sets status. The admin dashboard doesn't directly set driver online status,
-      // it just reads `drivers`. Let's mock the toggle locally and call location update to wake up status.
       setStatus(nextStatus);
       if (driver) {
-        // Send a location update to register status online
         await fetch('/api/location/update', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -124,6 +141,21 @@ export default function Home() {
     } finally {
       setLoading(false);
       fetchDriverData();
+    }
+  };
+
+  const handleAcceptIncomingOffer = async () => {
+    if (!incomingOffer) return;
+    try {
+      await fetch(`/api/rides/${incomingOffer.id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'IN_PROGRESS', driverId })
+      });
+      setIncomingOffer(null);
+      setStatus('BUSY');
+    } catch (err) {
+      console.error('Error accepting ride offer:', err);
     }
   };
 
@@ -212,19 +244,84 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Driver Location Data */}
-      {driver?.location && (
-        <div className="glass" style={{ padding: '16px', fontSize: '13px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-muted)', marginBottom: '8px' }}>
-            <MapPin size={14} />
-            <span>Telemetry Coordinates</span>
-          </div>
-          <div className="text-mono" style={{ color: 'var(--text-secondary)' }}>
-            Lat: {driver.location.lat.toFixed(6)} <br />
-            Lng: {driver.location.lng.toFixed(6)}
+      {/* Incoming Ride Offer Modal */}
+      {incomingOffer && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.88)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}>
+          <div className="glass" style={{ width: '100%', maxWidth: '380px', padding: '24px', border: '2px solid var(--accent-primary)', textAlign: 'center', position: 'relative' }}>
+            {/* Countdown Badge */}
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              background: 'rgba(16, 185, 129, 0.2)',
+              border: '2px solid var(--accent-primary)',
+              color: 'var(--accent-primary)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '18px',
+              fontWeight: '800',
+              margin: '0 auto 12px'
+            }}>
+              {countdown}s
+            </div>
+
+            <span style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              New Dispatch Request
+            </span>
+            <h2 className="text-h2" style={{ fontSize: '26px', color: 'var(--accent-primary)', margin: '4px 0 16px' }}>
+              ₦{incomingOffer.fare?.toLocaleString()}
+            </h2>
+
+            <div style={{ textAlign: 'left', background: 'rgba(255,255,255,0.03)', padding: '14px', borderRadius: '10px', marginBottom: '20px', fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div>
+                <span style={{ color: 'var(--text-muted)' }}>Passenger:</span> <strong style={{ color: '#fff' }}>{incomingOffer.passengerName}</strong>
+              </div>
+              <div>
+                <span style={{ color: 'var(--text-muted)' }}>Pickup:</span> <span>{incomingOffer.pickupLocation}</span>
+              </div>
+              <div>
+                <span style={{ color: 'var(--text-muted)' }}>Dropoff:</span> <span>{incomingOffer.dropoffLocation}</span>
+              </div>
+              {incomingOffer.isCarpool && (
+                <div style={{ color: 'var(--accent-gold)', fontWeight: '600' }}>
+                  👥 Shared Carpool Commute
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setIncomingOffer(null)}
+                style={{ flex: 1, padding: '12px' }}
+              >
+                Decline
+              </button>
+              <button 
+                className="btn btn-primary" 
+                onClick={handleAcceptIncomingOffer}
+                style={{ flex: 1.5, padding: '12px', background: 'linear-gradient(135deg, #10b981, #059669)', fontSize: '15px', fontWeight: '700' }}
+              >
+                Accept Ride
+              </button>
+            </div>
           </div>
         </div>
       )}
     </div>
   );
 }
+
