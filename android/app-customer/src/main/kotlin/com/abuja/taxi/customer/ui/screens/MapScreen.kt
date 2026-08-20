@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -26,15 +27,12 @@ import com.abuja.taxi.customer.ui.AuthViewModel
 import com.abuja.taxi.customer.ui.CustomerViewModel
 import com.abuja.taxi.customer.ui.components.PaymentWebView
 import com.abuja.taxi.customer.ui.components.SosButton
+import com.abuja.taxi.customer.ui.theme.AbujaEmerald
+import com.abuja.taxi.customer.ui.theme.AbujaGold
 import com.mapbox.geojson.Point
 import com.mapbox.maps.MapInitOptions
 import com.mapbox.maps.Style
 import com.mapbox.maps.extension.compose.MapboxMap
-import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
-import com.mapbox.maps.extension.compose.annotation.generated.PolylineAnnotation
-import com.mapbox.maps.extension.compose.animation.viewport.rememberViewportState
-import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
-import com.mapbox.geojson.LineString
 
 data class AbujaLandmark(val name: String, val coords: Coordinates)
 
@@ -97,117 +95,16 @@ fun MapScreen(
     }
 
     val abuja = Point.fromLngLat(7.3985, 9.0765)
-    val viewportState = rememberViewportState {
-        setCameraOptions {
-            center(abuja)
-            zoom(12.0)
-        }
-    }
-
-    // Auto-fit camera when route changes
-    LaunchedEffect(selectedDestination, bookedRide) {
-        val points = mutableListOf<Point>()
-        bookedRide?.let {
-            points.add(Point.fromLngLat(it.pickupCoords.lng, it.pickupCoords.lat))
-            points.add(Point.fromLngLat(it.dropoffCoords.lng, it.dropoffCoords.lat))
-        } ?: selectedDestination?.let {
-            points.add(Point.fromLngLat(7.3985, 9.0765)) // Mock current loc
-            points.add(Point.fromLngLat(it.coords.lng, it.coords.lat))
-        }
-
-        if (points.size >= 2) {
-            viewportState.setCameraOptions {
-                // Fit logic: for MVP just center between them and zoom out
-                val midLat = points.map { it.latitude() }.average()
-                val midLng = points.map { it.longitude() }.average()
-                center(Point.fromLngLat(midLng, midLat))
-                zoom(11.0)
-            }
-        }
-    }
 
     Scaffold { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             MapboxMap(
                 modifier = Modifier.fillMaxSize(),
-                mapInitOptionsFactory = { context ->
-                    MapInitOptions(
-                        context = context,
-                        styleUri = Style.TRAFFIC_DAY
-                    )
-                },
-                viewportState = viewportState
-            ) {
-                // Route Visualization
-                val routePoints = remember(selectedDestination, bookedRide) {
-                    val pts = mutableListOf<Point>()
-                    bookedRide?.let {
-                        pts.add(Point.fromLngLat(it.pickupCoords.lng, it.pickupCoords.lat))
-                        pts.add(Point.fromLngLat(it.dropoffCoords.lng, it.dropoffCoords.lat))
-                    } ?: selectedDestination?.let {
-                        pts.add(Point.fromLngLat(7.3985, 9.0765))
-                        pts.add(Point.fromLngLat(it.coords.lng, it.coords.lat))
-                    }
-                    pts
-                }
-
-                if (routePoints.size >= 2) {
-                    PolylineAnnotation(
-                        lineString = LineString.fromPoints(routePoints)
-                    ) {
-                        lineColorInt = android.graphics.Color.parseColor("#007AFF")
-                        lineWidth = 5.0
-                    }
-                }
-
-                // Surge Zones Heatmap
-                surgeZones.forEach { zone ->
-                    val center = when (zone.id) {
-                        "maitama" -> Point.fromLngLat(7.5000, 9.0833)
-                        "wuse2" -> Point.fromLngLat(7.4950, 9.0578)
-                        "cbd" -> Point.fromLngLat(7.4833, 9.0333)
-                        "gwarinpa" -> Point.fromLngLat(7.3985, 9.0764)
-                        "airport" -> Point.fromLngLat(7.2631, 9.0068)
-                        "utako" -> Point.fromLngLat(7.4600, 9.0600)
-                        else -> null
-                    }
-
-                    center?.let {
-                        val color = when {
-                            zone.multiplier >= 1.7 -> "#FF0000" // Red
-                            zone.multiplier >= 1.3 -> "#FFA500" // Orange
-                            else -> "#FFFF00" // Yellow
-                        }
-                        
-                        CircleAnnotation(
-                            point = it
-                        ) {
-                            circleRadius = 60.0
-                            circleColorInt = android.graphics.Color.parseColor(color)
-                            circleOpacity = 0.2
-                            circleStrokeWidth = 1.0
-                            circleStrokeColorInt = android.graphics.Color.parseColor(color)
-                        }
-                    }
-                }
-
-                drivers.forEach { driver ->
-                    val color = if (driver.status == "AVAILABLE") {
-                        "#50C878" // Emerald Green
-                    } else {
-                        "#FFD700" // Gold
-                    }
-
-                    CircleAnnotation(
-                        point = Point.fromLngLat(driver.location.lng, driver.location.lat)
-                    ) {
-                        circleRadius = 8.0
-                        circleColorInt = android.graphics.Color.parseColor(color)
-                        circleStrokeWidth = 2.0
-                        circleStrokeColorInt = android.graphics.Color.WHITE
-                    }
-                }
-            }
+                mapInitOptions = MapInitOptions(
+                    context = context,
+                    styleUri = Style.TRAFFIC_DAY
+                )
+            )
 
             if (isLoading) {
                 CircularProgressIndicator(

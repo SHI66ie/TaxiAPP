@@ -9,6 +9,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.activity.viewModels
 import com.mapbox.common.MapboxOptions
 import com.abuja.taxi.customer.ui.AuthViewModel

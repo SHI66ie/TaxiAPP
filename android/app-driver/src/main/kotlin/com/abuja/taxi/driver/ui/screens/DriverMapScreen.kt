@@ -23,16 +23,10 @@ import com.abuja.taxi.driver.ui.DriverViewModel
 import com.abuja.taxi.driver.ui.components.ActiveRideOverlay
 import com.abuja.taxi.driver.ui.components.RideRequestDialog
 import com.google.android.gms.location.*
-import com.mapbox.geojson.LineString
 import com.mapbox.geojson.Point
 import com.mapbox.maps.MapInitOptions
 import com.mapbox.maps.Style
 import com.mapbox.maps.extension.compose.MapboxMap
-import com.mapbox.maps.extension.compose.annotation.generated.CircleAnnotation
-import com.mapbox.maps.extension.compose.annotation.generated.PolylineAnnotation
-import com.mapbox.maps.extension.compose.animation.viewport.rememberViewportState
-import com.mapbox.maps.extension.compose.LocationComponentSettings
-import com.mapbox.maps.plugin.annotation.generated.PolylineAnnotationOptions
 import kotlinx.coroutines.delay
 
 @SuppressLint("MissingPermission")
@@ -66,14 +60,6 @@ fun DriverMapScreen(
 
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     var currentPoint by remember { mutableStateOf<Point?>(null) }
-
-    val viewportState = rememberViewportState {
-        setCameraOptions {
-            center(Point.fromLngLat(7.3985, 9.0765)) // Default to Abuja
-            zoom(15.0)
-            pitch(45.0) // Enable 3D Tilt for navigation
-        }
-    }
 
     LaunchedEffect(Unit) {
         if (!hasLocationPermission) {
@@ -124,67 +110,11 @@ fun DriverMapScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         MapboxMap(
             modifier = Modifier.fillMaxSize(),
-            mapInitOptionsFactory = { context ->
-                MapInitOptions(
-                    context = context,
-                    styleUri = Style.TRAFFIC_DAY
-                )
-            },
-            viewportState = viewportState,
-            locationComponentSettings = LocationComponentSettings(
-                enabled = hasLocationPermission,
-                pulsingEnabled = true
+            mapInitOptions = MapInitOptions(
+                context = context,
+                styleUri = Style.TRAFFIC_DAY
             )
-        ) {
-            // Ongoing Routes
-            activeRides.forEach { ride ->
-                currentPoint?.let { start ->
-                    val destination = if (ride.status == "IN_PROGRESS") {
-                        Point.fromLngLat(ride.dropoffCoords.lng, ride.dropoffCoords.lat)
-                    } else {
-                        Point.fromLngLat(ride.pickupCoords.lng, ride.pickupCoords.lat)
-                    }
-                    
-                    PolylineAnnotation(
-                        lineString = LineString.fromPoints(listOf(start, destination))
-                    ) {
-                        lineColorInt = android.graphics.Color.parseColor("#50C878")
-                        lineWidth = 4.0
-                    }
-                }
-            }
-
-            // Surge Zones Heatmap
-            surgeZones.forEach { zone ->
-                val center = when (zone.id) {
-                    "maitama" -> Point.fromLngLat(7.5000, 9.0833)
-                    "wuse2" -> Point.fromLngLat(7.4950, 9.0578)
-                    "cbd" -> Point.fromLngLat(7.4833, 9.0333)
-                    "gwarinpa" -> Point.fromLngLat(7.3985, 9.0764)
-                    "airport" -> Point.fromLngLat(7.2631, 9.0068)
-                    "utako" -> Point.fromLngLat(7.4600, 9.0600)
-                    else -> null
-                }
-
-                center?.let {
-                    val color = when {
-                        zone.multiplier >= 1.7 -> "#FF0000" // Red
-                        zone.multiplier >= 1.3 -> "#FFA500" // Orange
-                        else -> "#FFFF00" // Yellow
-                    }
-
-                    CircleAnnotation(
-                        point = it
-                    ) {
-                        circleRadius = 60.0
-                        circleColorInt = android.graphics.Color.parseColor(color)
-                        circleOpacity = 0.2
-                        circleStrokeWidth = 1.0
-                        circleStrokeColorInt = android.graphics.Color.parseColor(color)
-                    }
-                }
-            }
-        }
+        )
 
         // Availability Toggle
         Switch(
