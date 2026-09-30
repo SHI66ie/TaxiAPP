@@ -2,6 +2,7 @@
 import { INITIAL_DRIVERS, INITIAL_RIDES, INITIAL_KYC_DOCS } from '../data/mockStore.js';
 import { calculateDistance } from './fareService.js';
 import { computeCarpoolSplit } from './carpoolService.js';
+import { buildDriverTripRoutes } from './routeService.js';
 
 let drivers = [...INITIAL_DRIVERS];
 let rides = [...INITIAL_RIDES];
@@ -37,23 +38,39 @@ export function findNearbyDrivers(pickupCoords, vehicleType = 'standard', radius
   });
 }
 
-export function bookRide(rideData) {
+async function attachOptimizedRoutes(ride, assignedDriver) {
+  try {
+    const routes = await buildDriverTripRoutes({
+      driverCoords: assignedDriver?.location || null,
+      pickupCoords: ride.pickupCoords,
+      dropoffCoords: ride.dropoffCoords
+    });
+    ride.routes = routes;
+  } catch (err) {
+    console.warn('[dispatch] route attach failed:', err.message);
+    ride.routes = null;
+  }
+  return ride;
+}
+
+export async function bookRide(rideData) {
   if (rideData.isCarpool) {
-    // Check pending queue for a match
     for (let i = 0; i < pendingCarpoolRequests.length; i++) {
       const waitingPartner = pendingCarpoolRequests[i];
       const splitResult = computeCarpoolSplit(waitingPartner, rideData);
       
       if (splitResult.isCompatible) {
-        // Match found! Remove from queue
         pendingCarpoolRequests.splice(i, 1);
-        
-        // Find driver
         const nearby = findNearbyDrivers(rideData.pickupCoords, rideData.vehicleType);
         const assignedDriver = nearby[0] || drivers[0];
         
         const ride1 = createRideRecord(waitingPartner, splitResult.passenger1.carpoolFare, assignedDriver, rideData.passengerName || 'Matched Commuter');
         const ride2 = createRideRecord(rideData, splitResult.passenger2.carpoolFare, assignedDriver, waitingPartner.passengerName || 'Matched Commuter');
+
+        await Promise.all([
+          attachOptimizedRoutes(ride1, assignedDriver),
+          attachOptimizedRoutes(ride2, assignedDriver)
+        ]);
         
         rides.unshift(ride1, ride2);
         
@@ -69,16 +86,15 @@ export function bookRide(rideData) {
       }
     }
     
-    // No match found, add to queue
     const queueData = { ...rideData, id: `req_${Date.now().toString().slice(-4)}` };
     pendingCarpoolRequests.push(queueData);
     return { status: 'WAITING_FOR_MATCH', request: queueData };
   } else {
-    // Solo ride
     const nearby = findNearbyDrivers(rideData.pickupCoords, rideData.vehicleType);
     const assignedDriver = nearby[0] || drivers[0];
     
     const newRide = createRideRecord(rideData, rideData.fare, assignedDriver, null);
+    await attachOptimizedRoutes(newRide, assignedDriver);
     
     rides.unshift(newRide);
     if (assignedDriver) {
@@ -110,7 +126,8 @@ function createRideRecord(rideData, fare, assignedDriver, carpoolPartner) {
     driverVehicle: assignedDriver ? assignedDriver.vehicle : '',
     qrCode: `ABJ-QR-${Math.floor(1000 + Math.random() * 9000)}`,
     paymentMethod: rideData.paymentMethod || 'Paystack',
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    routes: null
   };
 }
 
@@ -144,7 +161,6 @@ export function submitKyc(driverId, kycData) {
     ...kycData
   };
 
-  // Replace or add to kyc docs
   const existingIdx = kycDocs.findIndex(k => k.driverId === driverId);
   if (existingIdx >= 0) {
     kycDocs[existingIdx] = newKyc;
