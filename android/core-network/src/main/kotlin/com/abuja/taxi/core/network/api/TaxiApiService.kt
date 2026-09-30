@@ -75,6 +75,9 @@ interface TaxiApiService {
 
     @POST("rides/{id}/verify-qr")
     suspend fun verifyQrCode(@Path("id") id: String, @Body request: QrVerificationRequest): ApiResponse<Ride>
+
+    @POST("routes/optimize")
+    suspend fun optimizeRoutes(@Body request: RouteOptimizeRequest): ApiResponse<DriverTripRoutes>
 }
 
 @kotlinx.serialization.Serializable
@@ -142,7 +145,7 @@ data class SurgeZone(
     val name: String,
     val multiplier: Double,
     val level: String,
-    val center: Coordinates? = null // Will be mapped in app if null
+    val center: Coordinates? = null
 )
 
 @kotlinx.serialization.Serializable

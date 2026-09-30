@@ -23,5 +23,6 @@ data class Ride(
     val driverVehicle: String? = null,
     val qrCode: String? = null,
     val paymentMethod: String,
-    val createdAt: String
+    val createdAt: String,
+    val routes: DriverTripRoutes? = null
 )
