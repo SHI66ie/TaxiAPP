@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { socket } from '../App';
 
-// Fix for default Leaflet icons in React
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -11,28 +10,24 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-// Custom Car Icon for driver
 const carIcon = new L.Icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/3204/3204121.png',
   iconSize: [32, 32],
   iconAnchor: [16, 16],
 });
 
-// Custom Pickup Icon
 const pickupIcon = new L.Icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
   iconSize: [28, 28],
   iconAnchor: [14, 14],
 });
 
-// Custom Dropoff Icon
 const dropoffIcon = new L.Icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684910.png',
   iconSize: [28, 28],
   iconAnchor: [14, 14],
 });
 
-// Component to recenter map when location changes
 const RecenterMap = ({ center }) => {
   const map = useMap();
   useEffect(() => {
@@ -41,8 +36,15 @@ const RecenterMap = ({ center }) => {
   return null;
 };
 
-const LiveMap = ({ driverLocation, surgeZones = [], rideLocations = null }) => {
+const toLatLngs = (route) => {
+  if (!route?.points?.length) return [];
+  return route.points.map((p) => [p.lat, p.lng]);
+};
+
+const LiveMap = ({ driverLocation, surgeZones = [], rideLocations = null, routes = null }) => {
   const center = driverLocation ? [driverLocation.lat, driverLocation.lng] : [9.0765, 7.3986];
+  const toPickup = toLatLngs(routes?.toPickup);
+  const toDestination = toLatLngs(routes?.toDestination);
 
   return (
     <div style={{ height: '300px', width: '100%', borderRadius: '12px', overflow: 'hidden', marginBottom: '20px' }}>
@@ -58,14 +60,12 @@ const LiveMap = ({ driverLocation, surgeZones = [], rideLocations = null }) => {
         />
         <RecenterMap center={center} />
         
-        {/* Driver Location Marker */}
         {driverLocation && (
           <Marker position={[driverLocation.lat, driverLocation.lng]} icon={carIcon}>
             <Popup>Your current location</Popup>
           </Marker>
         )}
 
-        {/* Surge Zone Indicators */}
         {surgeZones.map((zone, idx) => (
           <Circle
             key={idx}
@@ -87,7 +87,6 @@ const LiveMap = ({ driverLocation, surgeZones = [], rideLocations = null }) => {
           </Circle>
         ))}
 
-        {/* Ride Pickup/Dropoff Markers */}
         {rideLocations && (
           <>
             {rideLocations.pickup && (
@@ -101,6 +100,19 @@ const LiveMap = ({ driverLocation, surgeZones = [], rideLocations = null }) => {
               </Marker>
             )}
           </>
+        )}
+
+        {toPickup.length > 1 && (
+          <Polyline
+            positions={toPickup}
+            pathOptions={{ color: '#38BDF8', weight: 5, opacity: 0.95 }}
+          />
+        )}
+        {toDestination.length > 1 && (
+          <Polyline
+            positions={toDestination}
+            pathOptions={{ color: '#FFD428', weight: 5, opacity: 0.95 }}
+          />
         )}
       </MapContainer>
     </div>

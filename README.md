@@ -23,6 +23,7 @@ A resilient, locally-optimized ride-hailing and split-fare carpooling applicatio
 - Real-time driver positions on a dark Mapbox map centred on Abuja.
 - Colour-coded markers (emerald = available, gold = busy) + active ride pulses.
 - Click markers for driver / passenger popups.
+- **Driver navigation**: shortest + lowest-traffic legs (driver → hailer, hailer → destination) via Mapbox `driving-traffic` with fallback routing when no token is set.
 
 ### 5. 🌍 Geofenced Abuja Tariff Matrix
 - Custom zone pricing for Abuja landmarks (Nnamdi Azikiwe International Airport express, CBD, Wuse II, Gwarinpa, Kubwa, Lugbe).
@@ -30,23 +31,14 @@ A resilient, locally-optimized ride-hailing and split-fare carpooling applicatio
 
 ---
 
-## 🏗️ Repository Architecture
+## Traffic-aware driver routes
 
-```
-TaxiAPP/
-├── server/               # Node.js + Express + Socket.io Backend API & Real-time Matching
-│   ├── src/
-│   │   ├── lib/          # Supabase client (service role)
-│   │   ├── services/     # Carpool split-fare engine, dispatch, fare matrix, safety
-│   │   ├── routes/       # Auth, rides, carpool, drivers, admin, payments
-│   │   └── data/         # In-memory mock store (fallback when Supabase is not configured)
-├── admin-dashboard/      # React + Vite Web Management Portal (Live Dispatch, KYC, Analytics)
-│   └── src/lib/          # Supabase client (anon key)
-├── supabase/
-│   └── schema.sql        # Database schema + seed zones
-├── netlify.toml          # Netlify deploy config for the admin dashboard
-└── package.json          # Root scripts for running full application
-```
+Set `MAPBOX_ACCESS_TOKEN` in the server `.env` (same token as `VITE_MAPBOX_ACCESS_TOKEN` works for MVP).
+
+- `POST /api/routes/optimize` with `{ driverCoords, pickupCoords, dropoffCoords }`
+- Booking (`POST /api/rides/book`) attaches `ride.routes.toPickup` and `ride.routes.toDestination`
+- Blue polyline = driver → hailer; yellow polyline = hailer → destination
+- Alternatives from Mapbox are scored by live duration, distance, and congestion
 
 ---
 
@@ -59,20 +51,15 @@ npm run install-all
 
 ### 2. Environment
 ```bash
-# Server
 cp .env.example .env
-
-# Admin dashboard (Mapbox + Supabase)
 cp .env.example admin-dashboard/.env
 ```
 
-Edit `admin-dashboard/.env` and add at minimum:
-
+Add:
 ```
 VITE_MAPBOX_ACCESS_TOKEN=pk.your_token_here
+MAPBOX_ACCESS_TOKEN=pk.your_token_here
 ```
-
-Get a free token at [account.mapbox.com/access-tokens](https://account.mapbox.com/access-tokens/).
 
 ### 3. Run Backend & Admin Dashboard
 ```bash
@@ -84,42 +71,5 @@ npm run dev
 
 ---
 
-## 🗄️ Supabase Setup (Dev Database)
-
-1. Create a free project at [supabase.com](https://supabase.com).
-2. Go to **SQL Editor** → New query → paste the contents of `supabase/schema.sql` → Run.
-3. Go to **Project Settings → API** and copy the Project URL + keys.
-4. Put them in `.env` (server) and `admin-dashboard/.env`.
-
-If keys are missing the backend falls back to the in-memory mock store automatically.
-
----
-
-## 🌐 Netlify Deploy
-
-Both apps are deployed as **separate Netlify sites** from the same repository.
-
-### Admin Dashboard (Command Center)
-
-1. Import `SHI66ie/TaxiAPP` on [app.netlify.com](https://app.netlify.com) → **New site**.
-2. Root `netlify.toml` already sets `base = "admin-dashboard"`.
-3. Add environment variables:
-   - `VITE_MAPBOX_ACCESS_TOKEN`
-   - `VITE_SUPABASE_URL` (optional)
-   - `VITE_SUPABASE_ANON_KEY` (optional)
-4. Deploy.
-
-### Customer Portal
-
-1. Import `SHI66ie/TaxiAPP` on [app.netlify.com](https://app.netlify.com) → **New site** (separate site from the same repo).
-2. `customer-app/netlify.toml` already sets `base = "customer-app"`.
-3. Add environment variables:
-   - `VITE_MAPBOX_ACCESS_TOKEN`
-   - `VITE_SUPABASE_URL` (optional)
-   - `VITE_SUPABASE_ANON_KEY` (optional)
-4. Deploy.
-
----
-
-## 📜 License
+## 📝 License
 [MIT License](LICENSE)
