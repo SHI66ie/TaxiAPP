@@ -43,29 +43,50 @@ const toLatLngs = (route) => {
 
 const LiveMap = ({ driverLocation, surgeZones = [], rideLocations = null, routes = null }) => {
   const center = driverLocation ? [driverLocation.lat, driverLocation.lng] : [9.0765, 7.3986];
-  const toPickup = toLatLngs(routes?.toPickup);
-  const toDestination = toLatLngs(routes?.toDestination);
+  const [fetchedRoutes, setFetchedRoutes] = useState(null);
+  const activeRoutes = routes || fetchedRoutes;
+  const toPickup = toLatLngs(activeRoutes?.toPickup);
+  const toDestination = toLatLngs(activeRoutes?.toDestination);
+
+  useEffect(() => {
+    if (routes || !rideLocations?.pickup || !rideLocations?.dropoff) {
+      if (!rideLocations) setFetchedRoutes(null);
+      return undefined;
+    }
+    const controller = new AbortController();
+    fetch('/api/routes/optimize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
+      body: JSON.stringify({
+        driverCoords: driverLocation || undefined,
+        pickupCoords: rideLocations.pickup,
+        dropoffCoords: rideLocations.dropoff
+      })
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success) setFetchedRoutes(json.data);
+      })
+      .catch((err) => {
+        if (err.name !== 'AbortError') console.error('Route optimize err:', err);
+      });
+    return () => controller.abort();
+  }, [routes, rideLocations, driverLocation]);
 
   return (
     <div style={{ height: '300px', width: '100%', borderRadius: '12px', overflow: 'hidden', marginBottom: '20px' }}>
-      <MapContainer 
-        center={center} 
-        zoom={14} 
-        zoomControl={false} 
-        style={{ height: '100%', width: '100%' }}
-      >
+      <MapContainer center={center} zoom={14} zoomControl={false} style={{ height: '100%', width: '100%' }}>
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://carto.com/">Carto</a>'
         />
         <RecenterMap center={center} />
-        
         {driverLocation && (
           <Marker position={[driverLocation.lat, driverLocation.lng]} icon={carIcon}>
             <Popup>Your current location</Popup>
           </Marker>
         )}
-
         {surgeZones.map((zone, idx) => (
           <Circle
             key={idx}
@@ -86,7 +107,6 @@ const LiveMap = ({ driverLocation, surgeZones = [], rideLocations = null, routes
             </Popup>
           </Circle>
         ))}
-
         {rideLocations && (
           <>
             {rideLocations.pickup && (
@@ -101,18 +121,11 @@ const LiveMap = ({ driverLocation, surgeZones = [], rideLocations = null, routes
             )}
           </>
         )}
-
         {toPickup.length > 1 && (
-          <Polyline
-            positions={toPickup}
-            pathOptions={{ color: '#38BDF8', weight: 5, opacity: 0.95 }}
-          />
+          <Polyline positions={toPickup} pathOptions={{ color: '#38BDF8', weight: 5, opacity: 0.95 }} />
         )}
         {toDestination.length > 1 && (
-          <Polyline
-            positions={toDestination}
-            pathOptions={{ color: '#FFD428', weight: 5, opacity: 0.95 }}
-          />
+          <Polyline positions={toDestination} pathOptions={{ color: '#FFD428', weight: 5, opacity: 0.95 }} />
         )}
       </MapContainer>
     </div>
