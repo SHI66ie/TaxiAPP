@@ -27,10 +27,18 @@ const ActiveRide = ({ ride, onCancel, onCompleted }) => {
       }
     };
 
+    const handleDriverLocation = (data) => {
+      if (data && (data.driverId === currentRide?.driverId || data.id === currentRide?.driverId)) {
+        // Driver live location event
+      }
+    };
+
     socket.on('ride_status_updated', handleStatusUpdate);
+    socket.on('driver_location_update', handleDriverLocation);
 
     return () => {
       socket.off('ride_status_updated', handleStatusUpdate);
+      socket.off('driver_location_update', handleDriverLocation);
     };
   }, [currentRide, onCompleted]);
 
