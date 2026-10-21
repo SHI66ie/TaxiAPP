@@ -135,7 +135,7 @@ const FleetSelector = ({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
       {/* Fleet Category Cards */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '180px', overflowY: 'auto', paddingRight: '2px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '135px', overflowY: 'auto', paddingRight: '2px' }}>
         {categories.map(cat => {
           const isSelected = selected === cat.id;
           const Icon = cat.icon;

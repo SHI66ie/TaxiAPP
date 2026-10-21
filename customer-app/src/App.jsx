@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
+import { AuthProvider } from './context/AuthContext';
 
 // Layouts & Components
 import Layout from './components/Layout';
@@ -31,7 +32,6 @@ function App() {
     socket.on('connect', onConnect);
     socket.on('disconnect', onDisconnect);
 
-    // Global socket event listeners for customer app
     socket.on('emergency_sos_alert', (payload) => {
       console.log('SOS Alert received:', payload);
       alert('🚨 Emergency SOS Alert: ' + payload.message);
@@ -80,17 +80,19 @@ function App() {
   }, []);
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
-          <Route path="activity" element={<Activity />} />
-          <Route path="wallet" element={<Wallet />} />
-          <Route path="account" element={<Account />} />
-        </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Home />} />
+            <Route path="activity" element={<Activity />} />
+            <Route path="wallet" element={<Wallet />} />
+            <Route path="account" element={<Account />} />
+          </Route>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 

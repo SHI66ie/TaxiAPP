@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
-import { User, Shield, MapPin, Bell, Phone, Lock, Heart, ChevronRight, CheckCircle2, WifiOff, HelpCircle, LogOut, Star, Plus, Gift, Settings } from 'lucide-react';
+import { User, Shield, MapPin, Bell, Phone, Lock, Heart, ChevronRight, CheckCircle2, WifiOff, HelpCircle, LogOut, Star, Plus, Gift, Settings, Car } from 'lucide-react';
 import InviteFriendsModal from '../components/InviteFriendsModal';
 import NotificationsModal from '../components/NotificationsModal';
+import AuthModal from '../components/AuthModal';
+import { useAuth } from '../context/AuthContext';
 
 const Account = () => {
+  const { user, logout } = useAuth();
+  const [showAuth, setShowAuth] = useState(false);
   const [profile, setProfile] = useState({
-    name: 'Amina Bello',
-    phone: '+234 812 000 1111',
-    email: 'amina.bello@example.com',
-    location: 'Wuse II, Abuja'
+    name: user?.name || 'Amina Bello',
+    phone: user?.phone || '+234 812 000 1111',
+    email: user?.email || 'amina.bello@example.com',
+    location: 'Wuse II, Abuja',
+    role: user?.role || 'rider',
+    vehicle: user?.vehicle || null
   });
 
   const [emergencyContacts, setEmergencyContacts] = useState([
@@ -282,7 +288,29 @@ const Account = () => {
         </a>
       </div>
 
+      {/* Account Switcher / Sign In Prompt */}
+      <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
+        {user ? (
+          <button
+            onClick={logout}
+            className="btn-secondary"
+            style={{ width: '100%', padding: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: '#EF4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
+          >
+            <LogOut size={16} /> Sign Out of {user.name} ({user.role === 'driver' ? 'Driver Account' : 'Rider Account'})
+          </button>
+        ) : (
+          <button
+            onClick={() => setShowAuth(true)}
+            className="btn-primary"
+            style={{ width: '100%', padding: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+          >
+            <User size={16} /> Sign In or Register (Rider / Driver)
+          </button>
+        )}
+      </div>
+
       {/* Modals */}
+      {showAuth && <AuthModal isOpen={showAuth} onClose={() => setShowAuth(false)} />}
       {showInvite && <InviteFriendsModal onClose={() => setShowInvite(false)} />}
       {showNotifications && <NotificationsModal onClose={() => setShowNotifications(false)} />}
     </div>

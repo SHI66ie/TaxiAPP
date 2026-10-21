@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MapPin, Search, Compass, Loader } from 'lucide-react';
+import { MapPin, Search, Compass, Loader, ChevronDown, ChevronUp, Navigation, X } from 'lucide-react';
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
-// Abuja city centre — biases geocoding results toward Abuja
 const ABUJA_LNG = 7.4898;
 const ABUJA_LAT = 9.0579;
 
-// Debounce hook — waits `delay` ms after the user stops typing
 function useDebounce(value, delay) {
   const [debounced, setDebounced] = useState(value);
   useEffect(() => {
@@ -25,24 +23,21 @@ export const ABUJA_PRESET_LOCATIONS = [
   { name: 'Berger Roundabout / Utako', coords: { lat: 9.0650, lng: 7.4550 }, desc: 'Central Transit Interchange', tag: 'Interchange' }
 ];
 
-const BookingPanel = ({ onSearch }) => {
-  const [pickup] = useState({
+export default function BookingPanel({ onSearch, isExpanded, onToggleExpand }) {
+  const [pickup, setPickup] = useState({
     name: 'Wuse II (Aminu Kano Crescent)',
     coords: { lat: 9.05785, lng: 7.49508 }
   });
   const [destination, setDestination] = useState('');
   const [selectedDestCoords, setSelectedDestCoords] = useState(null);
 
-  // ── Autocomplete state ─────────────────────────────────────────────────────
   const [suggestions, setSuggestions] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const debouncedQuery = useDebounce(destination, 320);
   const dropdownRef = useRef(null);
 
-  // ── Mapbox Geocoding API call ───────────────────────────────────────────────
   useEffect(() => {
-    // Don't search if: empty, too short, or a location is already locked in
     if (!debouncedQuery || debouncedQuery.length < 2 || selectedDestCoords) {
       setSuggestions([]);
       setShowSuggestions(false);
@@ -74,7 +69,6 @@ const BookingPanel = ({ onSearch }) => {
       .finally(() => setIsSearching(false));
   }, [debouncedQuery, selectedDestCoords]);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handler = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -85,7 +79,6 @@ const BookingPanel = ({ onSearch }) => {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // ── Handlers ───────────────────────────────────────────────────────────────
   const handleSelectSuggestion = (s) => {
     setDestination(s.fullName);
     setSelectedDestCoords(s.coords);
@@ -109,7 +102,6 @@ const BookingPanel = ({ onSearch }) => {
     }
   };
 
-  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div
       className="bottom-sheet animate-slide-up"
@@ -118,105 +110,149 @@ const BookingPanel = ({ onSearch }) => {
         bottom: 0,
         left: 0,
         right: 0,
-        padding: '16px 20px 88px',
+        padding: '12px 18px 84px',
         zIndex: 40,
         background: 'linear-gradient(180deg, #171E2E 0%, #0E131F 100%)',
         borderTopLeftRadius: '24px',
         borderTopRightRadius: '24px',
         borderTop: '1px solid rgba(255, 255, 255, 0.12)',
         boxShadow: '0 -10px 40px rgba(0,0,0,0.7)',
-        maxHeight: '68vh',
-        overflowY: 'auto'
+        maxHeight: isExpanded ? '72vh' : 'auto',
+        transition: 'max-height 0.3s ease',
+        overflowY: isExpanded ? 'auto' : 'visible'
       }}
     >
-      <div className="drawer-handle" style={{ marginTop: '2px', marginBottom: '12px' }} />
+      {/* Drawer Handle & Toggle Button */}
+      <div 
+        onClick={onToggleExpand}
+        style={{ 
+          cursor: 'pointer', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          padding: '4px 0 8px' 
+        }}
+      >
+        <div className="drawer-handle" style={{ margin: 0 }} />
+      </div>
 
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+      {/* Prominent Conventional Search Bar Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
         <div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500' }}>Good day, Amina 👋</div>
-          <h2 className="text-h2" style={{ margin: '2px 0 0', fontSize: '20px', color: '#FFFFFF' }}>Where are you heading?</h2>
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Abuja Express Ride
+          </span>
+          <h2 style={{ fontSize: '19px', fontWeight: '800', color: '#FFFFFF', margin: '2px 0 0' }}>
+            Where to?
+          </h2>
         </div>
-        <span className="badge-pill badge-green">
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981', display: 'inline-block' }} />
-          18 Taxis Active
-        </span>
+        <button
+          type="button"
+          onClick={onToggleExpand}
+          style={{
+            background: 'rgba(255, 255, 255, 0.06)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '20px',
+            padding: '4px 10px',
+            color: 'var(--text-secondary)',
+            fontSize: '11px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          {isExpanded ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+          {isExpanded ? 'Collapse' : 'Expand'}
+        </button>
       </div>
 
       <form onSubmit={handleSubmit}>
-        {/* Route input card */}
+        {/* Connected Search Input Card */}
         <div style={{
-          background: 'rgba(14, 19, 31, 0.65)',
+          background: 'rgba(14, 19, 31, 0.75)',
           borderRadius: '16px',
-          padding: '14px',
+          padding: '12px 14px',
           border: '1px solid rgba(255, 255, 255, 0.08)',
-          marginBottom: '16px',
+          marginBottom: '12px',
           position: 'relative'
         }}>
-          {/* Dashed connector line */}
+          {/* Connector line */}
           <div style={{
             position: 'absolute',
-            left: '27px',
-            top: '32px',
-            bottom: '32px',
+            left: '26px',
+            top: '30px',
+            bottom: '30px',
             borderLeft: '2px dashed rgba(255, 212, 40, 0.4)',
             zIndex: 1
           }} />
 
           {/* Pickup row */}
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '12px', position: 'relative', zIndex: 2 }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px', position: 'relative', zIndex: 2 }}>
             <div style={{
-              width: '24px', height: '24px', borderRadius: '50%',
+              width: '22px', height: '22px', borderRadius: '50%',
               background: 'var(--aber-yellow)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               marginRight: '12px', flexShrink: 0
             }}>
-              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#0E131F' }} />
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#0E131F' }} />
             </div>
             <div style={{ flex: 1 }}>
               <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.6px', fontWeight: '700' }}>
-                Pickup Location
+                Pickup Point
               </span>
-              <div style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-primary)', paddingTop: '2px' }}>
-                {pickup.name}
-              </div>
+              <input
+                type="text"
+                value={pickup.name}
+                onChange={(e) => setPickup(prev => ({ ...prev, name: e.target.value }))}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  color: '#FFFFFF',
+                  fontSize: '14px',
+                  width: '100%',
+                  fontWeight: '600'
+                }}
+              />
             </div>
           </div>
 
-          <div style={{ height: '1px', background: 'rgba(255, 255, 255, 0.06)', margin: '8px 0 8px 36px' }} />
+          <div style={{ height: '1px', background: 'rgba(255, 255, 255, 0.06)', margin: '6px 0 6px 34px' }} />
 
-          {/* Destination row — with live autocomplete */}
+          {/* Search Destination Row */}
           <div ref={dropdownRef} style={{ display: 'flex', alignItems: 'flex-start', position: 'relative', zIndex: 20 }}>
             <div style={{
-              width: '24px', height: '24px', borderRadius: '6px',
+              width: '22px', height: '22px', borderRadius: '6px',
               background: '#EF4444',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              marginRight: '12px', flexShrink: 0, marginTop: '4px'
+              marginRight: '12px', flexShrink: 0, marginTop: '3px'
             }}>
-              <div style={{ width: '8px', height: '8px', background: '#FFFFFF', borderRadius: '2px' }} />
+              <div style={{ width: '6px', height: '6px', background: '#FFFFFF', borderRadius: '2px' }} />
             </div>
 
             <div style={{ flex: 1, position: 'relative' }}>
               <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.6px', fontWeight: '700' }}>
-                Destination (Abuja)
+                Where to? (Destination)
               </span>
 
-              {/* Input + spinner/tick */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <input
                   type="text"
-                  placeholder="Type any Abuja address or place…"
+                  placeholder="Type an address, landmark or district..."
                   value={destination}
                   onChange={(e) => {
                     setDestination(e.target.value);
                     setSelectedDestCoords(null);
                   }}
-                  onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                  onFocus={() => {
+                    if (suggestions.length > 0) setShowSuggestions(true);
+                  }}
                   style={{
                     background: 'transparent',
                     border: 'none',
                     outline: 'none',
-                    color: 'var(--text-primary)',
+                    color: '#FFFFFF',
                     fontSize: '15px',
                     width: '100%',
                     fontWeight: '700',
@@ -226,25 +262,30 @@ const BookingPanel = ({ onSearch }) => {
                 {isSearching && (
                   <Loader size={14} color="#FFD428" style={{ flexShrink: 0, animation: 'spin 1s linear infinite' }} />
                 )}
-                {selectedDestCoords && !isSearching && (
-                  <span style={{ fontSize: '15px', flexShrink: 0 }}>✅</span>
+                {destination && (
+                  <X 
+                    size={15} 
+                    color="var(--text-muted)" 
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => { setDestination(''); setSelectedDestCoords(null); }}
+                  />
                 )}
               </div>
 
-              {/* ── Autocomplete dropdown ──────────────────────────────── */}
+              {/* Suggestions Dropdown */}
               {showSuggestions && suggestions.length > 0 && (
                 <div style={{
                   position: 'absolute',
-                  top: 'calc(100% + 10px)',
-                  left: '-36px',
+                  top: 'calc(100% + 8px)',
+                  left: '-34px',
                   right: 0,
-                  background: 'rgba(10, 14, 26, 0.97)',
-                  backdropFilter: 'blur(16px)',
-                  border: '1px solid rgba(255, 212, 40, 0.28)',
+                  background: 'rgba(12, 16, 28, 0.98)',
+                  backdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(255, 212, 40, 0.3)',
                   borderRadius: '14px',
                   overflow: 'hidden',
                   zIndex: 999,
-                  boxShadow: '0 10px 36px rgba(0,0,0,0.7)'
+                  boxShadow: '0 12px 40px rgba(0,0,0,0.8)'
                 }}>
                   {suggestions.map((s, i) => (
                     <div
@@ -262,31 +303,19 @@ const BookingPanel = ({ onSearch }) => {
                       onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,212,40,0.09)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     >
-                      <MapPin size={14} color="#FFD428" style={{ flexShrink: 0 }} />
+                      <MapPin size={15} color="#FFD428" style={{ flexShrink: 0 }} />
                       <div style={{ minWidth: 0 }}>
-                        <div style={{
-                          fontSize: '13px', fontWeight: '700', color: '#FFFFFF',
-                          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
-                        }}>
+                        <div style={{ fontSize: '13px', fontWeight: '700', color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {s.name}
                         </div>
-                        <div style={{
-                          fontSize: '11px', color: 'var(--text-muted)',
-                          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
-                        }}>
+                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {s.fullName}
                         </div>
                       </div>
                     </div>
                   ))}
-                  {/* Mapbox attribution (required by ToS) */}
-                  <div style={{
-                    padding: '5px 14px',
-                    fontSize: '10px', color: 'var(--text-muted)',
-                    borderTop: '1px solid rgba(255,255,255,0.05)',
-                    display: 'flex', alignItems: 'center', gap: '4px'
-                  }}>
-                    🗺️ Powered by Mapbox
+                  <div style={{ padding: '6px 14px', fontSize: '10px', color: 'var(--text-muted)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                    🗺️ Powered by Mapbox Geocoding
                   </div>
                 </div>
               )}
@@ -294,17 +323,17 @@ const BookingPanel = ({ onSearch }) => {
           </div>
         </div>
 
-        {/* Quick Abuja preset corridors — hidden while suggestions are open */}
-        {!showSuggestions && (
-          <div style={{ marginBottom: '16px' }}>
-            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}>
-                <Compass size={14} color="var(--aber-yellow)" /> Quick Abuja Corridors
+        {/* Quick Corridor Buttons (Shown when expanded or no suggestions) */}
+        {isExpanded && !showSuggestions && (
+          <div style={{ marginBottom: '14px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700' }}>
+                <Compass size={14} color="var(--aber-yellow)" /> Abuja Corridors
               </span>
               <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Tap to set</span>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '150px', overflowY: 'auto' }}>
-              {ABUJA_PRESET_LOCATIONS.slice(0, 4).map((preset, idx) => (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '140px', overflowY: 'auto' }}>
+              {ABUJA_PRESET_LOCATIONS.slice(0, 3).map((preset, idx) => (
                 <div
                   key={idx}
                   onClick={() => handleSelectPreset(preset)}
@@ -312,31 +341,21 @@ const BookingPanel = ({ onSearch }) => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: '10px 12px',
+                    padding: '8px 12px',
                     borderRadius: '12px',
                     background: 'rgba(255, 255, 255, 0.03)',
                     border: '1px solid rgba(255, 255, 255, 0.06)',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
+                    cursor: 'pointer'
                   }}
-                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255, 212, 40, 0.08)'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)'}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{
-                      width: '30px', height: '30px', borderRadius: '8px',
-                      background: 'var(--bg-surface-elevated)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: 'var(--aber-yellow)'
-                    }}>
-                      <MapPin size={16} />
-                    </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <MapPin size={14} color="var(--aber-yellow)" />
                     <div>
-                      <div style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)' }}>{preset.name}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{preset.desc}</div>
+                      <div style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>{preset.name}</div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{preset.desc}</div>
                     </div>
                   </div>
-                  <span className="badge-pill badge-yellow" style={{ fontSize: '10px' }}>{preset.tag}</span>
+                  <span className="badge-pill badge-yellow" style={{ fontSize: '9px' }}>{preset.tag}</span>
                 </div>
               ))}
             </div>
@@ -347,13 +366,11 @@ const BookingPanel = ({ onSearch }) => {
           type="submit"
           className="btn-primary"
           disabled={!destination.trim()}
-          style={{ width: '100%', padding: '14px', fontSize: '15px' }}
+          style={{ width: '100%', padding: '13px', fontSize: '15px' }}
         >
-          <Search size={18} /> Find Rides &amp; Compare Prices
+          <Search size={18} /> Find Available Taxis
         </button>
       </form>
     </div>
   );
-};
-
-export default BookingPanel;
+}
