@@ -220,9 +220,10 @@ const LiveMap = ({ pickupCoords, dropoffCoords, isBooking }) => {
         zoomControl={false} 
         style={{ height: '100%', width: '100%' }}
       >
+        {/* Standard OpenStreetMap Tiles - 100% Free, No Watermark, Clean Cartography */}
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://carto.com/">Carto</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         />
 
         {/* Recenter only when there is no active route */}

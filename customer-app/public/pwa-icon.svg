@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0E131F" />
+      <stop offset="100%" stop-color="#05070B" />
+    </linearGradient>
+    <linearGradient id="yellowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE169" />
+      <stop offset="100%" stop-color="#FFD428" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)" />
+  <circle cx="256" cy="256" r="190" fill="url(#yellowGrad)" />
+  <path d="M374 300h28c8.5 0 14-5.6 14-14v-42c0-12.7-9.9-23.9-21.2-26.6C370 212 332 204 332 204s-18.4-19.8-31.1-32.5c-7-5.6-15.6-9.9-25.5-9.9H177c-8.5 0-15.6 5.6-19.8 12.7L136 214c-2.8 5.6-4.2 7-4.2 9.9v70c0 8.5 5.6 14 14 14h28" fill="none" stroke="#0E131F" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="205" cy="300" r="28" fill="#FFD428" stroke="#0E131F" stroke-width="32"/>
+  <path d="M233 300h114" stroke="#0E131F" stroke-width="32" stroke-linecap="round"/>
+  <circle cx="347" cy="300" r="28" fill="#FFD428" stroke="#0E131F" stroke-width="32"/>
+</svg>

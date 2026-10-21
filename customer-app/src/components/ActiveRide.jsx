@@ -102,19 +102,24 @@ const ActiveRide = ({ ride, onCancel, onCompleted }) => {
 
   return (
     <div 
-      className="glass-panel animate-slide-up"
+      className="bottom-sheet animate-slide-up"
       style={{ 
         position: 'absolute', 
-        bottom: '86px', 
-        left: '16px', 
-        right: '16px', 
-        padding: '20px',
-        zIndex: 10,
-        maxHeight: '78vh',
+        bottom: 0, 
+        left: 0, 
+        right: 0, 
+        padding: '16px 20px 88px',
+        zIndex: 40,
+        background: 'linear-gradient(180deg, #171E2E 0%, #0E131F 100%)',
+        borderTopLeftRadius: '24px',
+        borderTopRightRadius: '24px',
+        borderTop: '1px solid rgba(255, 255, 255, 0.12)',
+        boxShadow: '0 -10px 40px rgba(0,0,0,0.7)',
+        maxHeight: '75vh',
         overflowY: 'auto'
       }}
     >
-      <div className="drawer-handle" />
+      <div className="drawer-handle" style={{ marginTop: '2px', marginBottom: '12px' }} />
 
       {/* Top Header Status & Fare */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
