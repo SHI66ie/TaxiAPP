@@ -17,6 +17,19 @@ const Account = () => {
     vehicle: user?.vehicle || null
   });
 
+  React.useEffect(() => {
+    if (user) {
+      setProfile(prev => ({
+        ...prev,
+        name: user.name || prev.name,
+        phone: user.phone || prev.phone,
+        email: user.email || prev.email,
+        role: user.role || prev.role,
+        vehicle: user.vehicle || prev.vehicle
+      }));
+    }
+  }, [user]);
+
   const [emergencyContacts, setEmergencyContacts] = useState([
     { name: 'Dr. Usman Bello (Husband)', phone: '+234 803 222 3344' },
     { name: 'FCT Emergency Control Room', phone: '112' }

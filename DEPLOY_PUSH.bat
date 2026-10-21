@@ -1,0 +1,9 @@
+@echo off
+cd /d "%~dp0"
+echo Adding changes to git...
+git add .
+echo Committing changes...
+git commit -m "feat: complete backend server, setup scripts, profile sync, and build optimizations"
+echo Pushing to GitHub repository...
+git push origin main
+pause
