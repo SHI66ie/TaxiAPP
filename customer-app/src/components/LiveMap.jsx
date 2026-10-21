@@ -3,6 +3,29 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-
 import L from 'leaflet';
 import { socket } from '../App';
 
+// ── Road routing via OSRM (free, no API key required) ──────────────────────
+// Returns { coordinates: [[lat,lng],...], distance_km, duration_min } or null
+async function fetchOSRMRoute(pickup, dropoff) {
+  const url =
+    `https://router.project-osrm.org/route/v1/driving/` +
+    `${pickup.lng},${pickup.lat};${dropoff.lng},${dropoff.lat}` +
+    `?overview=full&geometries=geojson&steps=false`;
+  try {
+    const res = await fetch(url);
+    const json = await res.json();
+    if (json.code !== 'Ok' || !json.routes?.length) return null;
+    const route = json.routes[0];
+    // GeoJSON coords are [lng, lat]; Leaflet needs [lat, lng]
+    const coordinates = route.geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+    const distance_km = (route.distance / 1000).toFixed(1);
+    const duration_min = Math.ceil(route.duration / 60);
+    return { coordinates, distance_km, duration_min };
+  } catch (err) {
+    console.error('OSRM routing error:', err);
+    return null;
+  }
+}
+
 // Custom Aber Taxi Car Marker (DivIcon with Yellow Taxi badge)
 const createTaxiIcon = (name) => {
   return L.divIcon({
@@ -92,6 +115,18 @@ const RecenterMap = ({ center }) => {
   return null;
 };
 
+// Auto-fit map bounds to the full route polyline
+const FitRouteBounds = ({ coordinates }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (coordinates && coordinates.length >= 2) {
+      const bounds = L.latLngBounds(coordinates);
+      map.fitBounds(bounds, { padding: [60, 60], animate: true, maxZoom: 15 });
+    }
+  }, [coordinates, map]);
+  return null;
+};
+
 const LiveMap = ({ pickupCoords, dropoffCoords, isBooking }) => {
   const [userLoc, setUserLoc] = useState([9.05785, 7.49508]); // Default Wuse II, Abuja
   const [drivers, setDrivers] = useState({
@@ -100,11 +135,41 @@ const LiveMap = ({ pickupCoords, dropoffCoords, isBooking }) => {
     drv_103: { lat: 9.03333, lng: 7.48333, name: 'Musa (Okada)' }
   });
 
+  // Road-following route state (fetched from OSRM)
+  const [routeCoords, setRouteCoords] = useState(null);
+  const [routeInfo, setRouteInfo] = useState(null); // { distance_km, duration_min }
+  const [routeLoading, setRouteLoading] = useState(false);
+
   useEffect(() => {
     if (pickupCoords?.lat && pickupCoords?.lng) {
       setUserLoc([pickupCoords.lat, pickupCoords.lng]);
     }
   }, [pickupCoords]);
+
+  // Fetch real road route whenever pickup or dropoff changes
+  useEffect(() => {
+    if (pickupCoords?.lat && pickupCoords?.lng && dropoffCoords?.lat && dropoffCoords?.lng) {
+      setRouteLoading(true);
+      setRouteCoords(null);
+      setRouteInfo(null);
+      fetchOSRMRoute(pickupCoords, dropoffCoords).then((result) => {
+        if (result) {
+          setRouteCoords(result.coordinates);
+          setRouteInfo({ distance_km: result.distance_km, duration_min: result.duration_min });
+        } else {
+          // Fallback: straight line if OSRM fails (e.g. offline)
+          setRouteCoords([
+            [pickupCoords.lat, pickupCoords.lng],
+            [dropoffCoords.lat, dropoffCoords.lng]
+          ]);
+        }
+        setRouteLoading(false);
+      });
+    } else {
+      setRouteCoords(null);
+      setRouteInfo(null);
+    }
+  }, [pickupCoords, dropoffCoords]);
 
   useEffect(() => {
     // Fetch initial online drivers
@@ -147,11 +212,6 @@ const LiveMap = ({ pickupCoords, dropoffCoords, isBooking }) => {
     };
   }, []);
 
-  const routePositions = pickupCoords && dropoffCoords ? [
-    [pickupCoords.lat, pickupCoords.lng],
-    [dropoffCoords.lat, dropoffCoords.lng]
-  ] : null;
-
   return (
     <div style={{ height: '100%', width: '100%', position: 'absolute', top: 0, left: 0, zIndex: 0 }}>
       <MapContainer 
@@ -164,8 +224,13 @@ const LiveMap = ({ pickupCoords, dropoffCoords, isBooking }) => {
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://carto.com/">Carto</a>'
         />
-        <RecenterMap center={userLoc} />
-        
+
+        {/* Recenter only when there is no active route */}
+        {!routeCoords && <RecenterMap center={userLoc} />}
+
+        {/* Auto-fit map to the road route */}
+        {routeCoords && <FitRouteBounds coordinates={routeCoords} />}
+
         {/* User / Pickup Marker */}
         <Marker position={userLoc} icon={pickupIcon}>
           <Popup>
@@ -182,14 +247,13 @@ const LiveMap = ({ pickupCoords, dropoffCoords, isBooking }) => {
           </Marker>
         )}
 
-        {/* Aber Yellow Route Line */}
-        {routePositions && (
+        {/* Road-following Route Polyline (OSRM) */}
+        {routeCoords && (
           <Polyline 
-            positions={routePositions} 
-            color="#FFD428" 
-            weight={4} 
-            opacity={0.9} 
-            dashArray="10, 8" 
+            positions={routeCoords}
+            color="#FFD428"
+            weight={5}
+            opacity={0.92}
           />
         )}
 
@@ -199,12 +263,64 @@ const LiveMap = ({ pickupCoords, dropoffCoords, isBooking }) => {
             <Popup>
               <div style={{ color: '#0E131F', fontSize: '12px' }}>
                 <strong style={{ display: 'block', color: '#0E131F' }}>🚕 {loc.name || 'Abuja Driver'}</strong>
-                <span style={{ color: '#10B981', fontWeight: '600' }}>● Online & Ready</span>
+                <span style={{ color: '#10B981', fontWeight: '600' }}>● Online &amp; Ready</span>
               </div>
             </Popup>
           </Marker>
         ))}
       </MapContainer>
+
+      {/* Route Info Chip — distance & ETA */}
+      {routeInfo && (
+        <div style={{
+          position: 'absolute',
+          top: '16px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 1000,
+          background: 'rgba(14, 19, 31, 0.90)',
+          backdropFilter: 'blur(12px)',
+          border: '1px solid rgba(255, 212, 40, 0.4)',
+          borderRadius: '24px',
+          padding: '8px 20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '14px',
+          fontSize: '13px',
+          fontWeight: '700',
+          color: '#FFFFFF',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+          pointerEvents: 'none',
+          whiteSpace: 'nowrap'
+        }}>
+          <span>🛣️ <span style={{ color: '#FFD428' }}>{routeInfo.distance_km} km</span></span>
+          <span style={{ width: '1px', height: '14px', background: 'rgba(255,255,255,0.2)', display: 'inline-block' }} />
+          <span>⏱ <span style={{ color: '#10B981' }}>~{routeInfo.duration_min} min</span></span>
+        </div>
+      )}
+
+      {/* Routing calculation spinner */}
+      {routeLoading && (
+        <div style={{
+          position: 'absolute',
+          top: '16px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 1000,
+          background: 'rgba(14, 19, 31, 0.90)',
+          backdropFilter: 'blur(12px)',
+          border: '1px solid rgba(255, 212, 40, 0.25)',
+          borderRadius: '24px',
+          padding: '8px 20px',
+          fontSize: '12px',
+          fontWeight: '600',
+          color: '#FFD428',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+          pointerEvents: 'none'
+        }}>
+          🗺️ Calculating road route…
+        </div>
+      )}
     </div>
   );
 };
