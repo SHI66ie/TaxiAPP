@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import { LocateFixed } from 'lucide-react';
 import L from 'leaflet';
 import { socket } from '../App';
 
@@ -115,6 +116,17 @@ const RecenterMap = ({ center }) => {
   return null;
 };
 
+// Map Controller for external flyTo/center
+const MapController = ({ targetCenter }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (targetCenter && targetCenter[0] && targetCenter[1]) {
+      map.flyTo(targetCenter, 15, { animate: true, duration: 1.2 });
+    }
+  }, [targetCenter, map]);
+  return null;
+};
+
 // Auto-fit map bounds to the full route polyline
 const FitRouteBounds = ({ coordinates }) => {
   const map = useMap();
@@ -129,11 +141,36 @@ const FitRouteBounds = ({ coordinates }) => {
 
 const LiveMap = ({ pickupCoords, dropoffCoords, isBooking }) => {
   const [userLoc, setUserLoc] = useState([9.05785, 7.49508]); // Default Wuse II, Abuja
+  const [flyTarget, setFlyTarget] = useState(null);
+  const [isLocating, setIsLocating] = useState(false);
   const [drivers, setDrivers] = useState({
     drv_101: { lat: 9.05785, lng: 7.49508, name: 'Ibrahim (Corolla)' },
     drv_102: { lat: 9.07648, lng: 7.39857, name: 'Chidi (Accord)' },
     drv_103: { lat: 9.03333, lng: 7.48333, name: 'Musa (Okada)' }
   });
+
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser');
+      return;
+    }
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const newCoords = [latitude, longitude];
+        setUserLoc(newCoords);
+        setFlyTarget(newCoords);
+        setIsLocating(false);
+      },
+      (err) => {
+        console.warn('Geolocation error:', err.message);
+        alert('Could not retrieve current location. Please verify device GPS/location permission.');
+        setIsLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   // Road-following route state (fetched from OSRM)
   const [routeCoords, setRouteCoords] = useState(null);
@@ -229,6 +266,9 @@ const LiveMap = ({ pickupCoords, dropoffCoords, isBooking }) => {
         {/* Recenter only when there is no active route */}
         {!routeCoords && <RecenterMap center={userLoc} />}
 
+        {/* Map fly-to controller on location click */}
+        <MapController targetCenter={flyTarget} />
+
         {/* Auto-fit map to the road route */}
         {routeCoords && <FitRouteBounds coordinates={routeCoords} />}
 
@@ -270,6 +310,35 @@ const LiveMap = ({ pickupCoords, dropoffCoords, isBooking }) => {
           </Marker>
         ))}
       </MapContainer>
+
+      {/* Current Location Floating Button */}
+      <button
+        onClick={handleGetCurrentLocation}
+        title="Move to current location"
+        style={{
+          position: 'absolute',
+          right: '16px',
+          bottom: isBooking ? '380px' : '230px',
+          zIndex: 100,
+          width: '44px',
+          height: '44px',
+          borderRadius: '50%',
+          background: 'rgba(14, 19, 31, 0.92)',
+          backdropFilter: 'blur(10px)',
+          border: '1.5px solid rgba(255, 212, 40, 0.4)',
+          color: isLocating ? '#10B981' : 'var(--aber-yellow)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+          cursor: 'pointer',
+          transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.08)'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+      >
+        <LocateFixed size={20} className={isLocating ? 'spin' : ''} />
+      </button>
 
       {/* Route Info Chip — distance & ETA */}
       {routeInfo && (

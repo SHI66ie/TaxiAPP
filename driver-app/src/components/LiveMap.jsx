@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Circle, Polyline, useMap } from 'react-leaflet';
+import { LocateFixed } from 'lucide-react';
 import L from 'leaflet';
 
 // Road routing via OSRM (free, road-accurate)
@@ -107,6 +108,17 @@ const RecenterMap = ({ center }) => {
   return null;
 };
 
+// Driver Map Controller for flyTo
+const MapController = ({ targetCenter }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (targetCenter && targetCenter[0] && targetCenter[1]) {
+      map.flyTo(targetCenter, 15, { animate: true, duration: 1.2 });
+    }
+  }, [targetCenter, map]);
+  return null;
+};
+
 // Auto-fit route bounds
 const FitRouteBounds = ({ coordinates }) => {
   const map = useMap();
@@ -122,7 +134,31 @@ const FitRouteBounds = ({ coordinates }) => {
 const LiveMap = ({ driverLocation, surgeZones = [], rideLocations = null }) => {
   const [routeCoords, setRouteCoords] = useState(null);
   const [routeInfo, setRouteInfo] = useState(null);
+  const [flyTarget, setFlyTarget] = useState(null);
+  const [isLocating, setIsLocating] = useState(false);
   const center = driverLocation ? [driverLocation.lat, driverLocation.lng] : [9.0765, 7.3986];
+
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser');
+      return;
+    }
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const newCoords = [latitude, longitude];
+        setFlyTarget(newCoords);
+        setIsLocating(false);
+      },
+      (err) => {
+        console.warn('Geolocation error:', err.message);
+        alert('Could not retrieve current location.');
+        setIsLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   // Fetch road route if rideLocations provided
   useEffect(() => {
@@ -159,6 +195,7 @@ const LiveMap = ({ driverLocation, surgeZones = [], rideLocations = null }) => {
 
         {!routeCoords && <RecenterMap center={center} />}
         {routeCoords && <FitRouteBounds coordinates={routeCoords} />}
+        <MapController targetCenter={flyTarget} />
 
         {/* Driver Location Marker */}
         {driverLocation && (
@@ -225,6 +262,32 @@ const LiveMap = ({ driverLocation, surgeZones = [], rideLocations = null }) => {
           </>
         )}
       </MapContainer>
+
+      {/* Driver Current Location Button */}
+      <button
+        onClick={handleGetCurrentLocation}
+        title="Move to current location"
+        style={{
+          position: 'absolute',
+          right: '12px',
+          bottom: '12px',
+          zIndex: 1000,
+          width: '38px',
+          height: '38px',
+          borderRadius: '50%',
+          background: 'rgba(10, 15, 30, 0.92)',
+          backdropFilter: 'blur(8px)',
+          border: '1.5px solid rgba(16, 185, 129, 0.5)',
+          color: isLocating ? '#FFD428' : 'var(--accent-primary)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          boxShadow: '0 4px 14px rgba(0,0,0,0.5)'
+        }}
+      >
+        <LocateFixed size={18} className={isLocating ? 'spin' : ''} />
+      </button>
 
       {/* Route Info Badge for Driver */}
       {routeInfo && (

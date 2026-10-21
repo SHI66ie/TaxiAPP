@@ -140,39 +140,37 @@ export default function AuthModal({ isOpen, onClose }) {
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {mode === 'signup' && (
-            <div>
-              <label style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', display: 'block', marginBottom: '6px' }}>
-                Full Name
-              </label>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                background: 'rgba(255, 255, 255, 0.04)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                borderRadius: '12px',
-                padding: '12px 14px'
-              }}>
-                <User size={16} color="var(--text-muted)" />
-                <input
-                  type="text"
-                  placeholder="e.g. Amina Bello"
-                  required
-                  value={formData.name}
-                  onChange={e => setFormData({ ...formData, name: e.target.value })}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    outline: 'none',
-                    color: '#fff',
-                    fontSize: '14px',
-                    width: '100%'
-                  }}
-                />
-              </div>
+          <div>
+            <label style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', display: 'block', marginBottom: '6px' }}>
+              Full Name
+            </label>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              background: 'rgba(255, 255, 255, 0.04)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '12px',
+              padding: '12px 14px'
+            }}>
+              <User size={16} color="var(--text-muted)" />
+              <input
+                type="text"
+                placeholder="e.g. Amina Bello"
+                required={mode === 'signup'}
+                value={formData.name}
+                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  color: '#fff',
+                  fontSize: '14px',
+                  width: '100%'
+                }}
+              />
             </div>
-          )}
+          </div>
 
           <div>
             <label style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '700', display: 'block', marginBottom: '6px' }}>

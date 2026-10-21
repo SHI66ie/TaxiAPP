@@ -17,18 +17,9 @@ const Account = () => {
     vehicle: user?.vehicle || null
   });
 
-  React.useEffect(() => {
-    if (user) {
-      setProfile(prev => ({
-        ...prev,
-        name: user.name || prev.name,
-        phone: user.phone || prev.phone,
-        email: user.email || prev.email,
-        role: user.role || prev.role,
-        vehicle: user.vehicle || prev.vehicle
-      }));
-    }
-  }, [user]);
+  const displayName = user?.name || profile.name;
+  const displayPhone = user?.phone || profile.phone;
+  const displayRole = user?.role || profile.role;
 
   const [emergencyContacts, setEmergencyContacts] = useState([
     { name: 'Dr. Usman Bello (Husband)', phone: '+234 803 222 3344' },
@@ -92,13 +83,15 @@ const Account = () => {
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <h3 className="text-h3" style={{ fontSize: '17px', margin: 0, color: '#FFFFFF' }}>{profile.name}</h3>
+            <h3 className="text-h3" style={{ fontSize: '17px', margin: 0, color: '#FFFFFF' }}>{displayName}</h3>
             <CheckCircle2 size={16} color="var(--aber-yellow)" />
           </div>
-          <p className="text-sm" style={{ color: 'var(--text-muted)', margin: '2px 0 4px' }}>{profile.phone}</p>
+          <p className="text-sm" style={{ color: 'var(--text-muted)', margin: '2px 0 4px' }}>{displayPhone}</p>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(255, 212, 40, 0.12)', padding: '2px 8px', borderRadius: '12px' }}>
             <Star size={12} color="#FFD428" fill="#FFD428" />
-            <span style={{ fontSize: '11px', color: 'var(--aber-yellow)', fontWeight: '700' }}>4.98 Rider Score</span>
+            <span style={{ fontSize: '11px', color: 'var(--aber-yellow)', fontWeight: '700' }}>
+              4.98 {displayRole === 'driver' ? 'Driver Score' : 'Rider Score'}
+            </span>
           </div>
         </div>
       </div>
